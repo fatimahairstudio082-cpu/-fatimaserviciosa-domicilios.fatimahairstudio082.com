@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700&display=swap" rel="stylesheet">
+<script src="./fc-data.js"></script>
+<style>
+body{margin:0;background:#060606;font-family:'Montserrat',sans-serif;-webkit-font-smoothing:antialiased;}
+input::placeholder,textarea::placeholder{color:rgba(255,255,255,0.3);}
+.adm-in{width:100%;padding:12px 14px;background:#0d0d0d;border:1px solid rgba(197,160,89,0.25);border-radius:10px;color:#fff;font-family:'Montserrat',sans-serif;font-size:0.85rem;outline:none;box-sizing:border-box;}
+.adm-lbl{font-size:0.6rem;letter-spacing:2px;color:#C5A059;font-weight:700;text-transform:uppercase;margin:0 0 8px;}
+</style>
+</helmet>
+
+<div style="max-width:480px;margin:0 auto;background:#0d0d0d;min-height:100vh;color:#fff;position:relative;">
+
+  <input id="adm-file" type="file" accept="image/*" onChange="{{ onFile }}" style="display:none;">
+
+  <!-- LOCK SCREEN -->
+  <sc-if value="{{ locked }}" hint-placeholder-val="{{ true }}">
+    <div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:30px;text-align:center;">
+      <div style="font-size:2.6rem;margin-bottom:14px;">🔒</div>
+      <h1 style="font-family:'Cormorant Garamond',serif;font-size:2rem;color:#C5A059;margin:0 0 6px;letter-spacing:2px;">Panel Privado</h1>
+      <p style="color:rgba(255,255,255,0.5);font-size:0.82rem;margin:0 0 24px;">Solo Fátima Caldea · introduce tu clave</p>
+      <input id="adm-pin" type="password" inputmode="numeric" placeholder="Clave" onKeyDown="{{ onPinKey }}" class="adm-in" style="max-width:220px;text-align:center;letter-spacing:6px;font-size:1.1rem;margin-bottom:14px;">
+      <button onClick="{{ onUnlock }}" style="background:#C5A059;color:#000;border:none;padding:13px 30px;border-radius:50px;font-weight:700;font-size:0.86rem;cursor:pointer;font-family:'Montserrat',sans-serif;">Entrar</button>
+      <a href="Fatima Caldea App.dc.html" style="margin-top:22px;color:rgba(255,255,255,0.4);font-size:0.74rem;text-decoration:none;">← Volver a la app</a>
+    </div>
+  </sc-if>
+
+  <!-- ADMIN -->
+  <sc-if value="{{ unlocked }}" hint-placeholder-val="{{ false }}">
+    <div style="padding-bottom:60px;">
+
+      <!-- HEADER -->
+      <div style="position:sticky;top:0;z-index:50;background:rgba(10,10,10,0.96);backdrop-filter:blur(12px);border-bottom:1px solid rgba(197,160,89,0.2);padding:14px 18px;display:flex;align-items:center;justify-content:space-between;">
+        <div>
+          <div style="font-family:'Cormorant Garamond',serif;font-size:1.25rem;color:#C5A059;letter-spacing:1px;line-height:1;">Panel Admin</div>
+          <div style="font-size:0.6rem;color:rgba(255,255,255,0.45);letter-spacing:1px;margin-top:3px;">FÁTIMA CALDEA · PRIVADO</div>
+        </div>
+        <a href="Fatima Caldea App.dc.html" target="_blank" style="text-decoration:none;background:transparent;border:1px solid rgba(197,160,89,0.4);color:#C5A059;font-size:0.66rem;font-weight:700;padding:8px 13px;border-radius:50px;">👁 Ver app</a>
+      </div>
+
+      <!-- TABS -->
+      <div style="display:flex;gap:7px;overflow-x:auto;padding:13px 16px;background:#0a0a0a;border-bottom:1px solid rgba(197,160,89,0.12);-webkit-overflow-scrolling:touch;">
+        <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="6">
+          <button onClick="{{ t.onClick }}" style="flex:0 0 auto;background:{{ t.bg }};color:{{ t.fg }};border:1px solid {{ t.bd }};padding:8px 14px;border-radius:50px;font-size:0.7rem;font-weight:600;cursor:pointer;white-space:nowrap;font-family:'Montserrat',sans-serif;">{{ t.label }}</button>
+        </sc-for>
+      </div>
+
+      <div style="padding:20px 18px;">
+
+        <!-- ░░ TAB TRABAJOS ░░ -->
+        <sc-if value="{{ tabTrabajos }}" hint-placeholder-val="{{ true }}">
+          <div style="background:#141414;border:1px solid rgba(197,160,89,0.2);border-radius:16px;padding:18px;margin-bottom:24px;">
+            <h3 style="font-family:'Cormorant Garamond',serif;font-size:1.4rem;color:#fff;margin:0 0 16px;">{{ workFormTitle }}</h3>
+
+            <p class="adm-lbl">Categoría</p>
+            <div style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:18px;">
+              <sc-for list="{{ catOpts }}" as="c" hint-placeholder-count="6">
+                <button onClick="{{ c.onClick }}" style="background:{{ c.bg }};color:{{ c.fg }};border:1px solid {{ c.bd }};padding:7px 12px;border-radius:50px;font-size:0.68rem;font-weight:600;cursor:pointer;font-family:'Montserrat',sans-serif;">{{ c.label }}</button>
+              </sc-for>
+            </div>
+
+            <p class="adm-lbl">Título</p>
+            <input id="w-title" type="text" placeholder="Ej. Balayage rubio" class="adm-in" style="margin-bottom:18px;">
+
+            <p class="adm-lbl">Fotos · Antes / Después</p>
+            <div style="display:flex;gap:12px;margin-bottom:14px;">
+              <div style="flex:1;">
+                <div style="aspect-ratio:3/4;border-radius:11px;border:1px dashed rgba(197,160,89,0.4);background:#0d0d0d;position:relative;overflow:hidden;margin-bottom:8px;">
+                  <sc-if value="{{ hasAntes }}" hint-placeholder-val="{{ false }}">
+                    <div style="position:absolute;inset:0;background-image:url('{{ antesImg }}');background-size:cover;background-position:center;"></div>
+                  </sc-if>
+                  <sc-if value="{{ noAntes }}" hint-placeholder-val="{{ true }}">
+                    <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:rgba(197,160,89,0.6);font-size:0.62rem;letter-spacing:1px;">ANTES</div>
+                  </sc-if>
+                </div>
+                <button onClick="{{ onUpAntes }}" style="width:100%;background:rgba(197,160,89,0.12);border:1px solid rgba(197,160,89,0.35);color:#C5A059;font-size:0.66rem;font-weight:700;padding:8px;border-radius:8px;cursor:pointer;font-family:'Montserrat',sans-serif;">📷 Subir</button>
+              </div>
+              <div style="flex:1;">
+                <div style="aspect-ratio:3/4;border-radius:11px;border:1px dashed rgba(197,160,89,0.4);background:#0d0d0d;position:relative;overflow:hidden;margin-bottom:8px;">
+                  <sc-if value="{{ hasDespues }}" hint-placeholder-val="{{ false }}">
+                    <div style="position:absolute;inset:0;background-image:url('{{ despuesImg }}');background-size:cover;background-position:center;"></div>
+                  </sc-if>
+                  <sc-if value="{{ noDespues }}" hint-placeholder-val="{{ true }}">
+                    <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:rgba(197,160,89,0.6);font-size:0.62rem;letter-spacing:1px;">DESPUÉS</div>
+                  </sc-if>
+                </div>
+                <button onClick="{{ onUpDespues }}" style="width:100%;background:rgba(197,160,89,0.12);border:1px solid rgba(197,160,89,0.35);color:#C5A059;font-size:0.66rem;font-weight:700;padding:8px;border-radius:8px;cursor:pointer;font-family:'Montserrat',sans-serif;">📷 Subir</button>
+              </div>
+            </div>
+
+            <div style="background:rgba(42,111,219,0.08);border:1px solid rgba(120,170,255,0.25);border-radius:10px;padding:11px 13px;margin-bottom:18px;">
+              <p style="margin:0 0 8px;font-size:0.64rem;color:#9cc0ff;font-weight:700;letter-spacing:0.5px;">🔗 ¿Tienes la foto en Google Drive? Pega el link aquí:</p>
+              <div style="display:flex;gap:7px;margin-bottom:7px;">
+                <input id="w-drive-antes" type="text" placeholder="Link Drive → ANTES" class="adm-in" style="font-size:0.74rem;padding:9px 11px;">
+                <button onClick="{{ onDriveAntes }}" style="flex:0 0 auto;background:#2A6FDB;border:none;color:#fff;font-size:0.64rem;font-weight:700;padding:0 12px;border-radius:8px;cursor:pointer;">Usar</button>
+              </div>
+              <div style="display:flex;gap:7px;">
+                <input id="w-drive-despues" type="text" placeholder="Link Drive → DESPUÉS" class="adm-in" style="font-size:0.74rem;padding:9px 11px;">
+                <button onClick="{{ onDriveDespues }}" style="flex:0 0 auto;background:#2A6FDB;border:none;color:#fff;font-size:0.64rem;font-weight:700;padding:0 12px;border-radius:8px;cursor:pointer;">Usar</button>
+              </div>
+            </div>
+
+            <p class="adm-lbl">Vídeo (opcional) · YouTube o Drive</p>
+            <input id="w-video" type="text" placeholder="Pega el link del vídeo" class="adm-in" style="margin-bottom:18px;">
+
+            <div style="display:flex;gap:9px;">
+              <button onClick="{{ onSaveWork }}" style="flex:1;background:#C5A059;color:#000;border:none;padding:13px;border-radius:11px;cursor:pointer;font-weight:700;font-size:0.85rem;font-family:'Montserrat',sans-serif;">{{ workSaveLabel }}</button>
+              <sc-if value="{{ editingWork }}" hint-placeholder-val="{{ false }}">
+                <button onClick="{{ onCancelWork }}" style="flex:0 0 auto;background:transparent;border:1px solid rgba(255,255,255,0.25);color:rgba(255,255,255,0.7);padding:13px 18px;border-radius:11px;cursor:pointer;font-weight:600;font-size:0.8rem;font-family:'Montserrat',sans-serif;">Cancelar</button>
+              </sc-if>
+            </div>
+          </div>
+
+          <p class="adm-lbl" style="margin-bottom:14px;">Trabajos publicados · {{ workCount }}</p>
+          <div style="display:flex;flex-direction:column;gap:11px;">
+            <sc-for list="{{ workList }}" as="w" hint-placeholder-count="4">
+              <div style="display:flex;gap:12px;align-items:center;background:#141414;border:1px solid rgba(197,160,89,0.14);border-radius:13px;padding:11px;">
+                <div style="width:52px;height:64px;border-radius:8px;background-image:url('{{ w.thumb }}');background-size:cover;background-position:center;background-color:#222;flex:0 0 auto;"></div>
+                <div style="flex:1;min-width:0;">
+                  <div style="font-size:0.58rem;color:#C5A059;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;">{{ w.cat }}</div>
+                  <div style="font-family:'Cormorant Garamond',serif;font-size:1.05rem;color:#fff;line-height:1.2;margin-top:2px;">{{ w.title }}</div>
+                  <div style="font-size:0.62rem;color:rgba(255,255,255,0.4);margin-top:3px;">{{ w.meta }}</div>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:6px;">
+                  <button onClick="{{ w.onEdit }}" style="width:32px;height:32px;border-radius:8px;border:none;background:rgba(255,255,255,0.9);color:#000;cursor:pointer;font-size:0.78rem;">✎</button>
+                  <button onClick="{{ w.onDel }}" style="width:32px;height:32px;border-radius:8px;border:none;background:rgba(196,42,58,0.95);color:#fff;cursor:pointer;font-size:0.9rem;line-height:1;">×</button>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <!-- ░░ TAB CATEGORÍAS ░░ -->
+        <sc-if value="{{ tabCats }}" hint-placeholder-val="{{ false }}">
+          <p style="color:rgba(255,255,255,0.55);font-size:0.78rem;line-height:1.6;margin:0 0 18px;">Las categorías son los filtros de tu galería (Tinte, Mechas, Alisado…). Tus clientas tocan una y ven solo esos trabajos.</p>
+          <div style="background:#141414;border:1px solid rgba(197,160,89,0.2);border-radius:14px;padding:16px;margin-bottom:22px;">
+            <p class="adm-lbl">Nueva categoría</p>
+            <div style="display:flex;gap:8px;">
+              <input id="cat-icon" type="text" placeholder="🎨" maxlength="2" class="adm-in" style="width:58px;flex:0 0 auto;text-align:center;font-size:1.1rem;">
+              <input id="cat-name" type="text" placeholder="Nombre (ej. Hidratación)" class="adm-in">
+              <button onClick="{{ onAddCat }}" style="flex:0 0 auto;background:#C5A059;border:none;color:#000;font-weight:700;padding:0 16px;border-radius:9px;cursor:pointer;font-size:0.78rem;">Añadir</button>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:9px;">
+            <sc-for list="{{ catList }}" as="c" hint-placeholder-count="6">
+              <div style="display:flex;align-items:center;gap:11px;background:#141414;border:1px solid rgba(197,160,89,0.14);border-radius:11px;padding:11px 14px;">
+                <span style="font-size:1.3rem;">{{ c.icon }}</span>
+                <span style="flex:1;font-size:0.9rem;color:#fff;">{{ c.name }}</span>
+                <span style="font-size:0.64rem;color:rgba(255,255,255,0.4);">{{ c.count }}</span>
+                <button onClick="{{ c.onDel }}" style="width:30px;height:30px;border-radius:8px;border:none;background:rgba(196,42,58,0.9);color:#fff;cursor:pointer;font-size:0.9rem;line-height:1;">×</button>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <!-- ░░ TAB VÍDEOS ░░ -->
+        <sc-if value="{{ tabVideos }}" hint-placeholder-val="{{ false }}">
+          <div style="background:#141414;border:1px solid rgba(197,160,89,0.2);border-radius:16px;padding:18px;margin-bottom:24px;">
+            <h3 style="font-family:'Cormorant Garamond',serif;font-size:1.4rem;color:#fff;margin:0 0 16px;">{{ vidFormTitle }}</h3>
+
+            <p class="adm-lbl">Categoría</p>
+            <div style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:18px;">
+              <sc-for list="{{ vidCatOpts }}" as="c" hint-placeholder-count="6">
+                <button onClick="{{ c.onClick }}" style="background:{{ c.bg }};color:{{ c.fg }};border:1px solid {{ c.bd }};padding:7px 12px;border-radius:50px;font-size:0.68rem;font-weight:600;cursor:pointer;font-family:'Montserrat',sans-serif;">{{ c.label }}</button>
+              </sc-for>
+            </div>
+
+            <p class="adm-lbl">Título</p>
+            <input id="vid-title" type="text" placeholder="Ej. Mechas balayage" class="adm-in" style="margin-bottom:18px;">
+
+            <p class="adm-lbl">Vídeos · Antes / Después</p>
+            <div style="display:flex;gap:12px;margin-bottom:14px;">
+              <div style="flex:1;">
+                <div style="aspect-ratio:3/4;border-radius:11px;border:1px dashed rgba(197,160,89,0.4);background:#000;position:relative;overflow:hidden;">
+                  <sc-if value="{{ vidHasAntes }}" hint-placeholder-val="{{ false }}">
+                    <iframe src="{{ vidAntesEmbed }}" allowfullscreen style="position:absolute;inset:0;width:100%;height:100%;border:0;"></iframe>
+                  </sc-if>
+                  <sc-if value="{{ vidNoAntes }}" hint-placeholder-val="{{ true }}">
+                    <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:rgba(197,160,89,0.6);font-size:0.62rem;letter-spacing:1px;">ANTES</div>
+                  </sc-if>
+                </div>
+              </div>
+              <div style="flex:1;">
+                <div style="aspect-ratio:3/4;border-radius:11px;border:1px dashed rgba(197,160,89,0.4);background:#000;position:relative;overflow:hidden;">
+                  <sc-if value="{{ vidHasDespues }}" hint-placeholder-val="{{ false }}">
+                    <iframe src="{{ vidDespuesEmbed }}" allowfullscreen style="position:absolute;inset:0;width:100%;height:100%;border:0;"></iframe>
+                  </sc-if>
+                  <sc-if value="{{ vidNoDespues }}" hint-placeholder-val="{{ true }}">
+                    <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:rgba(197,160,89,0.6);font-size:0.62rem;letter-spacing:1px;">DESPUÉS</div>
+                  </sc-if>
+                </div>
+              </div>
+            </div>
+
+            <div style="background:rgba(42,111,219,0.08);border:1px solid rgba(120,170,255,0.25);border-radius:10px;padding:11px 13px;margin-bottom:18px;">
+              <p style="margin:0 0 8px;font-size:0.64rem;color:#9cc0ff;font-weight:700;letter-spacing:0.5px;">🔗 Pega el link del vídeo (YouTube o Google Drive). Se convierte solo:</p>
+              <div style="display:flex;gap:7px;margin-bottom:7px;">
+                <input id="vid-antes" type="text" placeholder="Link vídeo → ANTES" class="adm-in" style="font-size:0.74rem;padding:9px 11px;">
+                <button onClick="{{ onUsarVidAntes }}" style="flex:0 0 auto;background:#2A6FDB;border:none;color:#fff;font-size:0.64rem;font-weight:700;padding:0 12px;border-radius:8px;cursor:pointer;">Usar</button>
+              </div>
+              <div style="display:flex;gap:7px;">
+                <input id="vid-despues" type="text" placeholder="Link vídeo → DESPUÉS" class="adm-in" style="font-size:0.74rem;padding:9px 11px;">
+                <button onClick="{{ onUsarVidDespues }}" style="flex:0 0 auto;background:#2A6FDB;border:none;color:#fff;font-size:0.64rem;font-weight:700;padding:0 12px;border-radius:8px;cursor:pointer;">Usar</button>
+              </div>
+              <p style="margin:9px 0 0;font-size:0.62rem;color:rgba(255,255,255,0.4);line-height:1.4;">💡 Si solo tienes un vídeo, ponlo en “Después”. Funciona también con YouTube no listado.</p>
+            </div>
+
+            <div style="display:flex;gap:9px;">
+              <button onClick="{{ onSaveVideo }}" style="flex:1;background:#C5A059;color:#000;border:none;padding:13px;border-radius:11px;cursor:pointer;font-weight:700;font-size:0.85rem;font-family:'Montserrat',sans-serif;">{{ vidSaveLabel }}</button>
+              <sc-if value="{{ editingVid }}" hint-placeholder-val="{{ false }}">
+                <button onClick="{{ onCancelVideo }}" style="flex:0 0 auto;background:transparent;border:1px solid rgba(255,255,255,0.25);color:rgba(255,255,255,0.7);padding:13px 18px;border-radius:11px;cursor:pointer;font-weight:600;font-size:0.8rem;font-family:'Montserrat',sans-serif;">Cancelar</button>
+              </sc-if>
+            </div>
+          </div>
+
+          <p class="adm-lbl" style="margin-bottom:14px;">Vídeos publicados</p>
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:13px;">
+            <sc-for list="{{ videoList }}" as="v" hint-placeholder-count="4">
+              <div style="background:#141414;border:1px solid rgba(197,160,89,0.14);border-radius:12px;overflow:hidden;">
+                <div style="position:relative;padding-bottom:140%;height:0;background:#000;">
+                  <sc-if value="{{ v.hasPreview }}" hint-placeholder-val="{{ true }}">
+                    <iframe src="{{ v.preview }}" allowfullscreen loading="lazy" style="position:absolute;inset:0;width:100%;height:100%;border:0;"></iframe>
+                  </sc-if>
+                  <span style="position:absolute;top:6px;left:6px;background:rgba(0,0,0,0.7);color:#e8c97a;font-size:0.5rem;font-weight:700;letter-spacing:0.5px;padding:3px 7px;border-radius:50px;pointer-events:none;">{{ v.meta }}</span>
+                </div>
+                <div style="padding:9px 10px;">
+                  <sc-if value="{{ v.hasCat }}" hint-placeholder-val="{{ true }}">
+                    <div style="font-size:0.54rem;color:#C5A059;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;margin-bottom:3px;">{{ v.cat }}</div>
+                  </sc-if>
+                  <span style="display:block;font-size:0.66rem;color:rgba(255,255,255,0.7);line-height:1.3;">{{ v.title }}</span>
+                  <div style="display:flex;gap:6px;margin-top:8px;">
+                    <button onClick="{{ v.onEdit }}" style="flex:1;background:rgba(255,255,255,0.9);color:#000;border:none;border-radius:7px;padding:6px;cursor:pointer;font-size:0.66rem;font-weight:700;font-family:'Montserrat',sans-serif;">✎ Editar</button>
+                    <button onClick="{{ v.onDel }}" style="width:30px;flex:0 0 auto;border-radius:7px;border:none;background:rgba(196,42,58,0.9);color:#fff;cursor:pointer;font-size:0.85rem;line-height:1;">×</button>
+                  </div>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <!-- ░░ TAB SERVICIOS ░░ -->
+        <sc-if value="{{ tabServicios }}" hint-placeholder-val="{{ false }}">
+          <div style="background:#141414;border:1px solid rgba(197,160,89,0.2);border-radius:14px;padding:16px;margin-bottom:22px;">
+            <p class="adm-lbl">Nuevo servicio</p>
+            <div style="display:flex;gap:8px;margin-bottom:9px;">
+              <input id="srv-icon" type="text" placeholder="✨" maxlength="2" class="adm-in" style="width:58px;flex:0 0 auto;text-align:center;font-size:1.1rem;">
+              <input id="srv-title" type="text" placeholder="Nombre del servicio" class="adm-in">
+            </div>
+            <textarea id="srv-desc" placeholder="Descripción corta" rows="2" class="adm-in" style="margin-bottom:12px;resize:vertical;"></textarea>
+            <button onClick="{{ onAddService }}" style="width:100%;background:#C5A059;border:none;color:#000;font-weight:700;padding:12px;border-radius:10px;cursor:pointer;font-size:0.82rem;font-family:'Montserrat',sans-serif;">＋ Añadir servicio</button>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:10px;">
+            <sc-for list="{{ serviceList }}" as="s" hint-placeholder-count="5">
+              <div style="display:flex;gap:11px;align-items:center;background:#141414;border:1px solid rgba(197,160,89,0.14);border-radius:12px;padding:11px 13px;">
+                <span style="font-size:1.5rem;flex:0 0 auto;">{{ s.icon }}</span>
+                <div style="flex:1;min-width:0;">
+                  <div style="font-size:0.9rem;color:#fff;font-weight:600;">{{ s.title }}</div>
+                  <div style="font-size:0.66rem;color:rgba(255,255,255,0.42);line-height:1.4;margin-top:2px;">{{ s.desc }}</div>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:6px;">
+                  <button onClick="{{ s.onEdit }}" style="width:30px;height:30px;border-radius:8px;border:none;background:rgba(255,255,255,0.9);color:#000;cursor:pointer;font-size:0.74rem;">✎</button>
+                  <button onClick="{{ s.onDel }}" style="width:30px;height:30px;border-radius:8px;border:none;background:rgba(196,42,58,0.9);color:#fff;cursor:pointer;font-size:0.88rem;line-height:1;">×</button>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <!-- ░░ TAB RESEÑAS ░░ -->
+        <sc-if value="{{ tabResenas }}" hint-placeholder-val="{{ false }}">
+          <div style="background:#141414;border:1px solid rgba(197,160,89,0.2);border-radius:14px;padding:16px;margin-bottom:22px;">
+            <p class="adm-lbl">Añadir testimonio manual</p>
+            <input id="rev-name" type="text" placeholder="Nombre de la clienta" class="adm-in" style="margin-bottom:9px;">
+            <div style="display:flex;gap:6px;margin-bottom:9px;">
+              <sc-for list="{{ revStarPicker }}" as="st" hint-placeholder-count="5">
+                <button onClick="{{ st.onClick }}" style="background:transparent;border:none;cursor:pointer;font-size:1.5rem;line-height:1;padding:0;color:{{ st.color }};">★</button>
+              </sc-for>
+            </div>
+            <textarea id="rev-text" placeholder="Comentario de la clienta" rows="2" class="adm-in" style="margin-bottom:12px;resize:vertical;"></textarea>
+            <button onClick="{{ onAddReview }}" style="width:100%;background:#C5A059;border:none;color:#000;font-weight:700;padding:12px;border-radius:10px;cursor:pointer;font-size:0.82rem;font-family:'Montserrat',sans-serif;">＋ Publicar testimonio</button>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:10px;">
+            <sc-for list="{{ reviewList }}" as="r" hint-placeholder-count="3">
+              <div style="background:#141414;border:1px solid {{ r.border }};border-radius:12px;padding:13px 14px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                  <strong style="font-size:0.84rem;color:#fff;">{{ r.name }}</strong>
+                  <span style="font-size:0.78rem;color:#C5A059;">{{ r.starRow }}</span>
+                </div>
+                <p style="margin:0 0 11px;font-size:0.76rem;color:rgba(255,255,255,0.6);line-height:1.5;">{{ r.text }}</p>
+                <div style="display:flex;gap:8px;">
+                  <button onClick="{{ r.onToggle }}" style="flex:1;background:{{ r.toggleBg }};border:1px solid {{ r.toggleBd }};color:{{ r.toggleFg }};font-size:0.68rem;font-weight:700;padding:8px;border-radius:8px;cursor:pointer;font-family:'Montserrat',sans-serif;">{{ r.toggleLabel }}</button>
+                  <button onClick="{{ r.onDel }}" style="flex:0 0 auto;background:rgba(196,42,58,0.9);border:none;color:#fff;font-size:0.85rem;padding:0 14px;border-radius:8px;cursor:pointer;line-height:1;">×</button>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <!-- ░░ TAB LOGO & APP ░░ -->
+        <sc-if value="{{ tabLogo }}" hint-placeholder-val="{{ false }}">
+          <p class="adm-lbl">Tu logotipo</p>
+          <p style="color:rgba(255,255,255,0.5);font-size:0.76rem;line-height:1.6;margin:0 0 14px;">Sube tu logo (PNG con fondo transparente queda mejor). Aparecerá arriba en la app y como ícono al instalar.</p>
+          <div style="background:#141414;border:1px solid rgba(197,160,89,0.2);border-radius:14px;padding:20px;display:flex;flex-direction:column;align-items:center;gap:14px;margin-bottom:26px;">
+            <div style="height:80px;display:flex;align-items:center;justify-content:center;">
+              <sc-if value="{{ hasLogo }}" hint-placeholder-val="{{ false }}">
+                <div style="height:80px;width:220px;max-width:220px;background-image:url('{{ logoImg }}');background-size:contain;background-position:center;background-repeat:no-repeat;" role="img" aria-label="Logo"></div>
+              </sc-if>
+              <sc-if value="{{ noLogo }}" hint-placeholder-val="{{ true }}">
+                <span style="font-family:'Cormorant Garamond',serif;font-style:italic;color:#C5A059;font-size:1.6rem;letter-spacing:2px;">Fátima Caldea</span>
+              </sc-if>
+            </div>
+            <div style="display:flex;gap:9px;">
+              <button onClick="{{ onUpLogo }}" style="background:#C5A059;border:none;color:#000;font-weight:700;padding:11px 20px;border-radius:10px;cursor:pointer;font-size:0.8rem;font-family:'Montserrat',sans-serif;">📷 Subir logo</button>
+              <sc-if value="{{ hasLogo }}" hint-placeholder-val="{{ false }}">
+                <button onClick="{{ onDelLogo }}" style="background:transparent;border:1px solid rgba(255,255,255,0.25);color:rgba(255,255,255,0.7);padding:11px 18px;border-radius:10px;cursor:pointer;font-size:0.8rem;font-family:'Montserrat',sans-serif;">Quitar</button>
+              </sc-if>
+            </div>
+          </div>
+
+          <p class="adm-lbl">Instalar como app</p>
+          <div style="background:rgba(197,160,89,0.06);border-left:3px solid #C5A059;padding:15px 17px;border-radius:0 12px 12px 0;color:rgba(255,255,255,0.62);font-size:0.78rem;line-height:1.7;margin-bottom:26px;">
+            En la app aparece el botón <strong style="color:#C5A059;">📲 Instalar</strong> cuando el navegador lo permite. Si no aparece: en iPhone usa Safari → Compartir → “Añadir a pantalla de inicio”. En Android, Chrome → menú ⋮ → “Instalar aplicación”.
+          </div>
+
+          <p class="adm-lbl">Copia de seguridad</p>
+          <p style="color:rgba(255,255,255,0.5);font-size:0.76rem;line-height:1.6;margin:0 0 12px;">Todo lo que cargas se guarda en este dispositivo. Pulsa para copiar tus datos y guardarlos por si cambias de móvil.</p>
+          <button onClick="{{ onExport }}" style="width:100%;background:transparent;border:1px solid rgba(197,160,89,0.4);color:#C5A059;font-weight:700;padding:13px;border-radius:11px;cursor:pointer;font-size:0.82rem;font-family:'Montserrat',sans-serif;">⬇ Copiar mis datos (backup)</button>
+        </sc-if>
+
+      </div>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:430,&quot;height&quot;:900}}">
+class Component extends DCLogic {
+  constructor(props){
+    super(props);
+    this.PIN = '0824';
+    const FC = window.FC || {};
+    this.FC = FC;
+    const K = FC.KEYS || {works:'fc_works_v5',services:'fc_services_v3',videos:'fc_videos_v1',cats:'fc_cats_v1',reviews:'fc_reviews_v1',logo:'fc_logo_v1'};
+    this.K = K;
+    this.pending = null;
+    this.state = {
+      locked:true,
+      tab:'Trabajos',
+      works:this._load(K.works, FC.DEF_WORKS || []),
+      services:this._load(K.services, FC.DEF_SERVICES || []),
+      videos:this._load(K.videos, FC.DEF_VIDEOS || []),
+      cats:this._load(K.cats, FC.DEF_CATS || []),
+      reviews:this._load(K.reviews, FC.DEF_REVIEWS || []),
+      logo:this._load(K.logo, null),
+      draft:{id:null, cat:'', antes:'', despues:''},
+      vidDraft:{id:null, cat:'', antes:'', despues:''},
+      revStars:5
+    };
+  }
+  _load(k, def){ try { const r = localStorage.getItem(k); return r ? JSON.parse(r) : def; } catch(e){ return def; } }
+  _saveKey(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch(e){ alert('No hay espacio. Borra alguna foto antigua.'); return false; } }
+  _uid(){ return (this.FC.uid ? this.FC.uid() : 'x'+Date.now().toString(36)+Math.random().toString(36).slice(2,5)); }
+  _driveImg(u){ return this.FC.driveImg ? this.FC.driveImg(u) : u; }
+  _embed(u){ return this.FC.videoEmbed ? this.FC.videoEmbed(u) : u; }
+
+  // ── Lock ──
+  unlock(){
+    const el = document.getElementById('adm-pin');
+    const v = el ? el.value : '';
+    if (v === this.PIN) this.setState({locked:false});
+    else alert('Clave incorrecta.');
+  }
+  setTab(t){ this.setState({tab:t}); }
+
+  // ── Files ──
+  pick(){ const i = document.getElementById('adm-file'); if (i){ i.value=''; i.click(); } }
+  upFor(target){ this.pending = target; this.pick(); }
+  onFile(e){
+    const f = e.target && e.target.files && e.target.files[0];
+    if (!f) return;
+    const img = new Image();
+    const url = URL.createObjectURL(f);
+    img.onload = () => {
+      const max = 1100; let w = img.width, h = img.height;
+      const sc = Math.min(1, max/Math.max(w,h));
+      const c = document.createElement('canvas');
+      c.width = Math.round(w*sc); c.height = Math.round(h*sc);
+      c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+      URL.revokeObjectURL(url);
+      this._apply(c.toDataURL('image/jpeg', 0.82));
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); alert('No se pudo leer la imagen.'); };
+    img.src = url;
+  }
+  _apply(data){
+    const p = this.pending; if (!p) return;
+    if (p.type === 'logo'){ this.setState({logo:data}, () => this._saveKey(this.K.logo, this.state.logo)); }
+    else if (p.type === 'draft'){ this.setState(s => ({draft:{...s.draft, [p.which]:data}})); }
+    else if (p.type === 'service'){ this.setState(s => ({services:s.services.map(x => x.id===p.id?{...x,img:data}:x)}), () => this._saveKey(this.K.services, this.state.services)); }
+    this.pending = null;
+  }
+
+  // ── Trabajos ──
+  setDraftCat(name){ this.setState(s => ({draft:{...s.draft, cat:name}})); }
+  upAntes(){ this.upFor({type:'draft', which:'antes'}); }
+  upDespues(){ this.upFor({type:'draft', which:'despues'}); }
+  driveAntes(){ const el = document.getElementById('w-drive-antes'); const v = el && el.value.trim(); if (!v) return; this.setState(s => ({draft:{...s.draft, antes:v}})); if (el) el.value=''; }
+  driveDespues(){ const el = document.getElementById('w-drive-despues'); const v = el && el.value.trim(); if (!v) return; this.setState(s => ({draft:{...s.draft, despues:v}})); if (el) el.value=''; }
+  editWork(id){
+    const w = this.state.works.find(x => x.id===id); if (!w) return;
+    this.setState({tab:'Trabajos', draft:{id:w.id, cat:w.cat||'', antes:w.antes||'', despues:w.despues||''}}, () => {
+      const t = document.getElementById('w-title'); if (t) t.value = w.title||'';
+      const v = document.getElementById('w-video'); if (v) v.value = w.video||'';
+      try { window.scrollTo({top:0, behavior:'smooth'}); } catch(e){}
+    });
+  }
+  cancelWork(){ this.setState({draft:{id:null, cat:'', antes:'', despues:''}}, () => this._clearWorkInputs()); }
+  _clearWorkInputs(){ ['w-title','w-video','w-drive-antes','w-drive-despues'].forEach(id => { const e = document.getElementById(id); if (e) e.value=''; }); }
+  saveWork(){
+    const t = document.getElementById('w-title');
+    const v = document.getElementById('w-video');
+    const d = this.state.draft;
+    const title = (t && t.value.trim()) || d.cat || 'Trabajo';
+    const video = (v && v.value.trim()) || '';
+    if (!d.antes && !d.despues){ alert('Sube o pega al menos una foto (antes o después).'); return; }
+    const cat = d.cat || (this.state.cats[0] && this.state.cats[0].name) || 'Otro';
+    const rec = {id:d.id||this._uid(), cat, tag:cat, title, antes:d.antes||'', despues:d.despues||'', video};
+    this.setState(s => {
+      const works = d.id ? s.works.map(w => w.id===d.id?rec:w) : [rec, ...s.works];
+      return {works, draft:{id:null, cat:'', antes:'', despues:''}};
+    }, () => { this._saveKey(this.K.works, this.state.works); this._clearWorkInputs(); });
+  }
+  delWork(id){ if (!confirm('¿Borrar este trabajo?')) return; this.setState(s => ({works:s.works.filter(w => w.id!==id)}), () => this._saveKey(this.K.works, this.state.works)); }
+
+  // ── Categorías ──
+  addCat(){
+    const ni = document.getElementById('cat-icon');
+    const nn = document.getElementById('cat-name');
+    const name = (nn && nn.value.trim()) || '';
+    if (!name){ alert('Escribe el nombre de la categoría.'); return; }
+    const icon = (ni && ni.value.trim()) || '•';
+    this.setState(s => ({cats:[...s.cats, {id:this._uid(), name, icon}]}), () => this._saveKey(this.K.cats, this.state.cats));
+    if (ni) ni.value=''; if (nn) nn.value='';
+  }
+  delCat(id){
+    const c = this.state.cats.find(x => x.id===id); if (!c) return;
+    if (!confirm('¿Borrar la categoría "'+c.name+'"? Tus trabajos no se borran.')) return;
+    this.setState(s => ({cats:s.cats.filter(x => x.id!==id)}), () => this._saveKey(this.K.cats, this.state.cats));
+  }
+
+  // ── Vídeos (antes / después, igual que los trabajos) ──
+  setVidDraftCat(name){ this.setState(s => ({vidDraft:{...s.vidDraft, cat:name}})); }
+  usarVidAntes(){ const el=document.getElementById('vid-antes'); const v=el&&el.value.trim(); if(!v) return; if(!this._embed(v)){ alert('Ese link no es de YouTube ni de Google Drive. Revísalo.'); return; } this.setState(s=>({vidDraft:{...s.vidDraft, antes:v}})); if(el) el.value=''; }
+  usarVidDespues(){ const el=document.getElementById('vid-despues'); const v=el&&el.value.trim(); if(!v) return; if(!this._embed(v)){ alert('Ese link no es de YouTube ni de Google Drive. Revísalo.'); return; } this.setState(s=>({vidDraft:{...s.vidDraft, despues:v}})); if(el) el.value=''; }
+  editVideo(id){ const v=this.state.videos.find(x=>x.id===id); if(!v) return; this.setState({tab:'Vídeos', vidDraft:{id:v.id, cat:v.cat||'', antes:v.antes||'', despues:v.despues||''}}, ()=>{ const t=document.getElementById('vid-title'); if(t) t.value=v.title||v.cap||''; try{window.scrollTo({top:0,behavior:'smooth'});}catch(e){} }); }
+  cancelVideo(){ this.setState({vidDraft:{id:null,cat:'',antes:'',despues:''}}, ()=>{ ['vid-title','vid-antes','vid-despues'].forEach(id=>{const e=document.getElementById(id); if(e) e.value='';}); }); }
+  saveVideo(){
+    const t=document.getElementById('vid-title');
+    const d=this.state.vidDraft;
+    if(!d.antes && !d.despues){ alert('Pega al menos un link de vídeo (antes o después).'); return; }
+    const title=(t&&t.value.trim())||d.cat||'Vídeo';
+    const cat=d.cat||(this.state.cats[0]&&this.state.cats[0].name)||'';
+    const rec={id:d.id||this._uid(), cat, title, antes:d.antes||'', despues:d.despues||''};
+    this.setState(s=>{ const videos=d.id? s.videos.map(v=>v.id===d.id?rec:v):[rec,...s.videos]; return {videos, vidDraft:{id:null,cat:'',antes:'',despues:''}}; }, ()=>{ this._saveKey(this.K.videos,this.state.videos); ['vid-title','vid-antes','vid-despues'].forEach(id=>{const e=document.getElementById(id); if(e) e.value='';}); });
+  }
+  delVideo(id){ if (!confirm('¿Borrar este vídeo?')) return; this.setState(s => ({videos:s.videos.filter(v => v.id!==id)}), () => this._saveKey(this.K.videos, this.state.videos)); }
+
+  // ── Servicios ──
+  addService(){
+    const ic = document.getElementById('srv-icon');
+    const ti = document.getElementById('srv-title');
+    const de = document.getElementById('srv-desc');
+    const title = (ti && ti.value.trim()) || '';
+    if (!title){ alert('Escribe el nombre del servicio.'); return; }
+    const icon = (ic && ic.value.trim()) || '✨';
+    const desc = (de && de.value.trim()) || '';
+    this.setState(s => ({services:[...s.services, {id:this._uid(), icon, title, desc, img:null}]}), () => this._saveKey(this.K.services, this.state.services));
+    if (ic) ic.value=''; if (ti) ti.value=''; if (de) de.value='';
+  }
+  editService(id){
+    const sv = this.state.services.find(x => x.id===id); if (!sv) return;
+    const title = prompt('Nombre del servicio:', sv.title); if (title===null) return;
+    const desc = prompt('Descripción:', sv.desc); if (desc===null) return;
+    const icon = prompt('Emoji/ícono:', sv.icon); if (icon===null) return;
+    this.setState(s => ({services:s.services.map(x => x.id===id?{...x, title:title.trim()||x.title, desc:desc.trim(), icon:icon.trim()||x.icon}:x)}), () => this._saveKey(this.K.services, this.state.services));
+  }
+  delService(id){ if (!confirm('¿Borrar este servicio?')) return; this.setState(s => ({services:s.services.filter(x => x.id!==id)}), () => this._saveKey(this.K.services, this.state.services)); }
+
+  // ── Reseñas ──
+  setRevStars(n){ this.setState({revStars:n}); }
+  addReview(){
+    const nm = document.getElementById('rev-name');
+    const tx = document.getElementById('rev-text');
+    const name = (nm && nm.value.trim()) || '';
+    const text = (tx && tx.value.trim()) || '';
+    if (!name || !text){ alert('Escribe nombre y comentario.'); return; }
+    const rec = {id:this._uid(), name, stars:this.state.revStars||5, text, date:new Date().toISOString().slice(0,10), published:true};
+    this.setState(s => ({reviews:[rec, ...s.reviews], revStars:5}), () => this._saveKey(this.K.reviews, this.state.reviews));
+    if (nm) nm.value=''; if (tx) tx.value='';
+  }
+  toggleReview(id){ this.setState(s => ({reviews:s.reviews.map(r => r.id===id?{...r, published:r.published===false}:r)}), () => this._saveKey(this.K.reviews, this.state.reviews)); }
+  delReview(id){ if (!confirm('¿Borrar esta reseña?')) return; this.setState(s => ({reviews:s.reviews.filter(r => r.id!==id)}), () => this._saveKey(this.K.reviews, this.state.reviews)); }
+
+  // ── Logo / Export ──
+  upLogo(){ this.upFor({type:'logo'}); }
+  delLogo(){ this.setState({logo:null}, () => { try { localStorage.removeItem(this.K.logo); } catch(e){} }); }
+  exportData(){
+    const data = {works:this.state.works, services:this.state.services, videos:this.state.videos, cats:this.state.cats, reviews:this.state.reviews, logo:this.state.logo?'(logo guardado)':null};
+    const json = JSON.stringify(data, null, 2);
+    try {
+      navigator.clipboard.writeText(json).then(() => alert('✅ Datos copiados al portapapeles. Pégalos en una nota para guardarlos.'), () => this._fallbackCopy(json));
+    } catch(e){ this._fallbackCopy(json); }
+  }
+  _fallbackCopy(json){
+    const ta = document.createElement('textarea'); ta.value = json; document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); alert('✅ Datos copiados.'); } catch(e){ alert('Copia manual:\n\n'+json.slice(0,400)+'...'); }
+    document.body.removeChild(ta);
+  }
+
+  _starStr(n){ return '★★★★★'.slice(0,n) + '☆☆☆☆☆'.slice(0,5-n); }
+
+  renderVals(){
+    const s = this.state;
+    const tabNames = ['Trabajos','Categorías','Vídeos','Servicios','Reseñas','Logo & App'];
+    const tabs = tabNames.map(t => {
+      const active = s.tab === t;
+      return { label:t, bg:active?'#C5A059':'transparent', fg:active?'#0a0a0a':'#e8c97a', bd:active?'#C5A059':'rgba(197,160,89,0.3)', onClick:() => this.setTab(t) };
+    });
+
+    const catOpts = (s.cats || []).map(c => {
+      const active = s.draft.cat === c.name;
+      return { label:(c.icon?c.icon+' ':'')+c.name, bg:active?'#C5A059':'transparent', fg:active?'#0a0a0a':'#e8c97a', bd:active?'#C5A059':'rgba(197,160,89,0.3)', onClick:() => this.setDraftCat(c.name) };
+    });
+
+    const workList = (s.works || []).map(w => ({
+      cat:w.cat || w.tag || 'Trabajo', title:w.title || '',
+      thumb: this._driveImg(w.despues || w.antes || ''),
+      meta: (w.antes && w.despues ? 'Antes/Después' : 'Foto') + (w.video ? ' · 🎬 vídeo' : ''),
+      onEdit:() => this.editWork(w.id), onDel:() => this.delWork(w.id)
+    }));
+
+    const catList = (s.cats || []).map(c => ({
+      icon:c.icon || '•', name:c.name,
+      count: (s.works || []).filter(w => (w.cat||'')===c.name).length + ' trabajos',
+      onDel:() => this.delCat(c.id)
+    }));
+
+    const videoList = (s.videos || []).map(v => {
+      const dE=this._embed(v.despues||''); const aE=this._embed(v.antes||'');
+      return { title:v.title||v.cap||'Vídeo', cat:v.cat||'', hasCat:!!v.cat, preview:dE||aE, hasPreview:!!(dE||aE), meta:(v.antes&&v.despues)?'Antes/Después':'Vídeo', onEdit:()=>this.editVideo(v.id), onDel:() => this.delVideo(v.id) };
+    });
+    const vidCatOpts = (s.cats || []).map(c => {
+      const active = s.vidDraft.cat === c.name;
+      return { label:(c.icon?c.icon+' ':'')+c.name, bg:active?'#C5A059':'transparent', fg:active?'#0a0a0a':'#e8c97a', bd:active?'#C5A059':'rgba(197,160,89,0.3)', onClick:() => this.setVidDraftCat(c.name) };
+    });
+    const vd = s.vidDraft;
+    const vidAntesEmbed=this._embed(vd.antes||''); const vidDespuesEmbed=this._embed(vd.despues||'');
+
+    const serviceList = (s.services || []).map(x => ({
+      icon:x.icon || '✨', title:x.title || '', desc:x.desc || '',
+      onEdit:() => this.editService(x.id), onDel:() => this.delService(x.id)
+    }));
+
+    const reviewList = (s.reviews || []).map(r => {
+      const pub = r.published !== false;
+      return {
+        name:r.name, text:r.text, starRow:this._starStr(r.stars||5),
+        border: pub ? 'rgba(197,160,89,0.14)' : 'rgba(196,42,58,0.4)',
+        toggleLabel: pub ? '✓ Publicada (ocultar)' : 'Oculta (publicar)',
+        toggleBg: pub ? 'rgba(31,138,91,0.15)' : 'transparent',
+        toggleFg: pub ? '#5fd29a' : '#e8c97a',
+        toggleBd: pub ? 'rgba(31,138,91,0.4)' : 'rgba(197,160,89,0.35)',
+        onToggle:() => this.toggleReview(r.id), onDel:() => this.delReview(r.id)
+      };
+    });
+    const revStarPicker = [1,2,3,4,5].map(n => ({ color: n<=(s.revStars||0)?'#C5A059':'rgba(255,255,255,0.22)', onClick:() => this.setRevStars(n) }));
+
+    return {
+      locked:s.locked, unlocked:!s.locked,
+      onUnlock:() => this.unlock(),
+      onPinKey:(e) => { if (e.key==='Enter'){ e.preventDefault(); this.unlock(); } },
+      onFile:(e) => this.onFile(e),
+      tabs,
+      tabTrabajos: s.tab==='Trabajos', tabCats: s.tab==='Categorías', tabVideos: s.tab==='Vídeos',
+      tabServicios: s.tab==='Servicios', tabResenas: s.tab==='Reseñas', tabLogo: s.tab==='Logo & App',
+      catOpts, workList, workCount:(s.works||[]).length,
+      workFormTitle: s.draft.id ? 'Editar trabajo' : 'Nuevo trabajo',
+      workSaveLabel: s.draft.id ? 'Guardar cambios' : 'Publicar trabajo',
+      editingWork: !!s.draft.id,
+      antesImg: this._driveImg(s.draft.antes||''), hasAntes:!!s.draft.antes, noAntes:!s.draft.antes,
+      despuesImg: this._driveImg(s.draft.despues||''), hasDespues:!!s.draft.despues, noDespues:!s.draft.despues,
+      onUpAntes:() => this.upAntes(), onUpDespues:() => this.upDespues(),
+      onDriveAntes:() => this.driveAntes(), onDriveDespues:() => this.driveDespues(),
+      onSaveWork:() => this.saveWork(), onCancelWork:() => this.cancelWork(),
+      catList, onAddCat:() => this.addCat(),
+      videoList, vidCatOpts,
+      vidFormTitle: vd.id?'Editar vídeo':'Nuevo vídeo',
+      vidSaveLabel: vd.id?'Guardar cambios':'Publicar vídeo',
+      editingVid:!!vd.id,
+      vidAntesEmbed, vidHasAntes:!!vidAntesEmbed, vidNoAntes:!vidAntesEmbed,
+      vidDespuesEmbed, vidHasDespues:!!vidDespuesEmbed, vidNoDespues:!vidDespuesEmbed,
+      onUsarVidAntes:()=>this.usarVidAntes(), onUsarVidDespues:()=>this.usarVidDespues(),
+      onSaveVideo:()=>this.saveVideo(), onCancelVideo:()=>this.cancelVideo(),
+      serviceList, onAddService:() => this.addService(),
+      reviewList, revStarPicker, onAddReview:() => this.addReview(),
+      logoImg:s.logo || 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==', hasLogo:!!s.logo, noLogo:!s.logo,
+      onUpLogo:() => this.upLogo(), onDelLogo:() => this.delLogo(),
+      onExport:() => this.exportData()
+    };
+  }
+}
+</script>
+</body>
+</html>
