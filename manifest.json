@@ -2,12 +2,16 @@
   "name": "Fátima Caldea · Servicios a Domicilio",
   "short_name": "Fátima Caldea",
   "description": "Estilista y colorimetrista a domicilio. Trabajos, vídeos y citas.",
-  "start_url": ".",
+  "start_url": "./index.html",
+  "scope": "./",
   "display": "standalone",
+  "orientation": "portrait",
   "background_color": "#0d0d0d",
   "theme_color": "#0d0d0d",
   "icons": [
-    { "src": "icono-fatima-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
-    { "src": "icono-fatima.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+    { "src": "icono-fatima-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icono-fatima-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "icono-fatima.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icono-fatima.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ]
 }
