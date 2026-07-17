@@ -7,7 +7,8 @@ window.FC = (function () {
     videos: 'fc_videos_v3',
     cats: 'fc_cats_v1',
     reviews: 'fc_reviews_v1',
-    logo: 'fc_logo_v1'
+    logo: 'fc_logo_v1',
+    covers: 'fc_covers_v1'
   };
 
   function load(k, def) {
