@@ -51,7 +51,7 @@ input::placeholder{color:rgba(255,255,255,0.32);}
 
   <!-- HERO -->
   <section id="inicio" style="position:relative;min-height:90vh;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:96px 22px 56px;overflow:hidden;">
-    <img src="portada.jpg" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0.5;" alt="Fátima Caldea">
+    <img src="{{ heroImg }}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0.5;" alt="Fátima Caldea">
     <div style="position:absolute;inset:0;background:linear-gradient(160deg,rgba(6,6,6,0.78) 0%,rgba(26,10,16,0.74) 100%);"></div>
     <div style="position:relative;z-index:2;">
       <div style="display:inline-block;border:1px solid #C5A059;color:#C5A059;font-size:0.58rem;letter-spacing:3px;font-weight:700;padding:6px 16px;border-radius:50px;margin-bottom:22px;text-transform:uppercase;">✦ A Domicilio · España</div>
@@ -326,7 +326,7 @@ input::placeholder{color:rgba(255,255,255,0.32);}
   <!-- FLOATING AVATAR -->
   <div style="position:fixed;left:50%;transform:translateX(-50%);width:min(480px,100%);bottom:76px;z-index:80;pointer-events:none;height:0;">
     <button onClick="{{ onToggleChat }}" style="position:absolute;right:16px;bottom:0;pointer-events:auto;width:58px;height:58px;border-radius:50%;border:2px solid #C5A059;background:#111;overflow:hidden;cursor:pointer;padding:0;animation:fc-pulse 2.6s infinite;">
-      <img src="fatima-avatar.jpg" style="width:100%;height:100%;object-fit:cover;" alt="Chat">
+      <img src="{{ avatarImg }}" style="width:100%;height:100%;object-fit:cover;" alt="Chat">
     </button>
   </div>
 
@@ -334,7 +334,7 @@ input::placeholder{color:rgba(255,255,255,0.32);}
   <sc-if value="{{ chatOpen }}" hint-placeholder-val="{{ false }}">
     <div style="position:fixed;left:50%;transform:translateX(-50%);width:min(480px,100%);top:0;bottom:0;z-index:130;display:flex;flex-direction:column;background:#0d0d0d;">
         <div style="flex:0 0 auto;background:#0a0a0a;padding:13px 15px;display:flex;align-items:center;gap:11px;border-bottom:1px solid rgba(197,160,89,0.18);">
-          <img src="fatima-avatar.jpg" style="width:42px;height:42px;border-radius:50%;border:2px solid #C5A059;object-fit:cover;flex:0 0 auto;" alt="Fátima">
+          <img src="{{ avatarImg }}" style="width:42px;height:42px;border-radius:50%;border:2px solid #C5A059;object-fit:cover;flex:0 0 auto;" alt="Fátima">
           <div style="flex:1;min-width:0;">
             <strong style="font-size:0.92rem;">Fátima Caldea</strong>
             <div style="font-size:0.64rem;color:#C5A059;">● En línea · responde al instante</div>
@@ -462,6 +462,7 @@ class Component extends DCLogic {
     this.CATS_KEY = K.cats;
     this.REVIEWS_KEY = K.reviews;
     this.LOGO_KEY = K.logo;
+    this.COVERS_KEY = K.covers || 'fc_covers_v1';
     this.pending = null;
 
     const defWorks = [
@@ -497,6 +498,7 @@ class Component extends DCLogic {
       videos:this._load(this.VIDEOS_KEY, defVideos),
       reviews:this._load(this.REVIEWS_KEY, defReviews),
       logo:this._load(this.LOGO_KEY, null),
+      covers:this._load(this.COVERS_KEY, {}),
       catFilter:'all',
       vidFilter:'all',
       reviewStars:5,
@@ -619,8 +621,25 @@ class Component extends DCLogic {
     this._loadVoices();
     this._onBIP = (e) => { e.preventDefault(); this._deferredPrompt = e; this.setState({canInstall:true}); };
     window.addEventListener('beforeinstallprompt', this._onBIP);
+    // Al volver a esta pestaña (p. ej. desde el Panel Admin), recargar lo guardado
+    this._onFocus = () => {
+      if (this.state.edit || this.state.draftOpen) return;
+      this.setState({
+        works:this._load(this.WORKS_KEY, this.state.works),
+        services:this._load(this.SERV_KEY, this.state.services),
+        categories:this._load(this.CATS_KEY, this.state.categories),
+        videos:this._load(this.VIDEOS_KEY, this.state.videos),
+        reviews:this._load(this.REVIEWS_KEY, this.state.reviews),
+        logo:this._load(this.LOGO_KEY, null),
+        covers:this._load(this.COVERS_KEY, {})
+      });
+    };
+    window.addEventListener('focus', this._onFocus);
   }
-  componentWillUnmount(){ if (this._onScroll) window.removeEventListener('scroll', this._onScroll); }
+  componentWillUnmount(){
+    if (this._onScroll) window.removeEventListener('scroll', this._onScroll);
+    if (this._onFocus) window.removeEventListener('focus', this._onFocus);
+  }
 
   go(id){
     const el = document.getElementById(id);
@@ -991,6 +1010,8 @@ class Component extends DCLogic {
       reviewsView, hasReviews:reviewCount > 0, reviewCount, avgStars, avgStarsRow,
       starPicker, onSubmitReview:() => this.submitReview(),
       logo:s.logo || BLANK, hasLogo:!!s.logo, noLogo:!s.logo,
+      heroImg: (s.covers && s.covers.hero) ? conv(s.covers.hero) : 'portada.jpg',
+      avatarImg: (s.covers && s.covers.avatar) ? conv(s.covers.avatar) : 'fatima-avatar.jpg',
       canInstall:s.canInstall, onInstall:() => this.installApp(),
       showVideos: this.props.showVideos ?? true,
       showCalculadoras: this.props.showCalculadoras ?? true,

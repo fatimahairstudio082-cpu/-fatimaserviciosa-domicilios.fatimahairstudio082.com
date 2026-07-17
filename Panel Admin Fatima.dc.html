@@ -305,6 +305,61 @@ input::placeholder,textarea::placeholder{color:rgba(255,255,255,0.3);}
           </div>
         </sc-if>
 
+        <!-- ░░ TAB PORTADAS ░░ -->
+        <sc-if value="{{ tabPortadas }}" hint-placeholder-val="{{ false }}">
+          <p style="color:rgba(255,255,255,0.55);font-size:0.78rem;line-height:1.6;margin:0 0 18px;">Cambia la foto grande de la pantalla de inicio y tu foto de perfil del chat. Se actualizan al instante en la app.</p>
+
+          <!-- Portada de inicio -->
+          <div style="background:#141414;border:1px solid rgba(197,160,89,0.2);border-radius:16px;padding:18px;margin-bottom:22px;">
+            <p class="adm-lbl">Portada de inicio</p>
+            <div style="position:relative;border-radius:12px;overflow:hidden;border:1px dashed rgba(197,160,89,0.4);background:#000;aspect-ratio:16/10;margin-bottom:6px;">
+              <img src="{{ heroImg }}" alt="Portada" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0.85;">
+              <span style="position:absolute;top:8px;left:8px;background:rgba(0,0,0,0.7);color:#e8c97a;font-size:0.54rem;font-weight:700;letter-spacing:1px;padding:4px 9px;border-radius:50px;">{{ heroBadge }}</span>
+            </div>
+            <p style="margin:0 0 12px;font-size:0.62rem;color:rgba(255,255,255,0.4);line-height:1.4;">💡 Queda mejor una foto vertical u horizontal grande y nítida. En la app se ve oscurecida con tu nombre encima.</p>
+            <div style="display:flex;gap:9px;margin-bottom:12px;">
+              <button onClick="{{ onUpHero }}" style="flex:1;background:#C5A059;border:none;color:#000;font-weight:700;padding:11px;border-radius:10px;cursor:pointer;font-size:0.78rem;font-family:'Montserrat',sans-serif;">📷 Subir foto</button>
+              <sc-if value="{{ hasHero }}" hint-placeholder-val="{{ false }}">
+                <button onClick="{{ onDelHero }}" style="flex:0 0 auto;background:transparent;border:1px solid rgba(255,255,255,0.25);color:rgba(255,255,255,0.7);padding:11px 16px;border-radius:10px;cursor:pointer;font-size:0.76rem;font-family:'Montserrat',sans-serif;">↩ Restaurar original</button>
+              </sc-if>
+            </div>
+            <div style="background:rgba(42,111,219,0.08);border:1px solid rgba(120,170,255,0.25);border-radius:10px;padding:11px 13px;">
+              <p style="margin:0 0 8px;font-size:0.64rem;color:#9cc0ff;font-weight:700;letter-spacing:0.5px;">🔗 ¿La foto está en Google Drive? Pega el link:</p>
+              <div style="display:flex;gap:7px;">
+                <input id="cov-hero-drive" type="text" placeholder="Link Drive → Portada" class="adm-in" style="font-size:0.74rem;padding:9px 11px;">
+                <button onClick="{{ onDriveHero }}" style="flex:0 0 auto;background:#2A6FDB;border:none;color:#fff;font-size:0.64rem;font-weight:700;padding:0 12px;border-radius:8px;cursor:pointer;">Usar</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Foto de perfil del chat -->
+          <div style="background:#141414;border:1px solid rgba(197,160,89,0.2);border-radius:16px;padding:18px;">
+            <p class="adm-lbl">Foto de perfil · Chat</p>
+            <div style="display:flex;align-items:center;gap:16px;margin-bottom:12px;">
+              <div style="width:84px;height:84px;flex:0 0 auto;border-radius:50%;overflow:hidden;border:2px solid #C5A059;background:#000;position:relative;">
+                <img src="{{ avatarImg }}" alt="Perfil" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;">
+              </div>
+              <div style="flex:1;">
+                <p style="margin:0 0 4px;font-size:0.72rem;color:#fff;font-weight:600;">{{ avatarBadge }}</p>
+                <p style="margin:0;font-size:0.62rem;color:rgba(255,255,255,0.4);line-height:1.4;">Es la foto redonda del botón de chat y de la cabecera de la conversación.</p>
+              </div>
+            </div>
+            <div style="display:flex;gap:9px;margin-bottom:12px;">
+              <button onClick="{{ onUpAvatar }}" style="flex:1;background:#C5A059;border:none;color:#000;font-weight:700;padding:11px;border-radius:10px;cursor:pointer;font-size:0.78rem;font-family:'Montserrat',sans-serif;">📷 Subir foto</button>
+              <sc-if value="{{ hasAvatar }}" hint-placeholder-val="{{ false }}">
+                <button onClick="{{ onDelAvatar }}" style="flex:0 0 auto;background:transparent;border:1px solid rgba(255,255,255,0.25);color:rgba(255,255,255,0.7);padding:11px 16px;border-radius:10px;cursor:pointer;font-size:0.76rem;font-family:'Montserrat',sans-serif;">↩ Restaurar original</button>
+              </sc-if>
+            </div>
+            <div style="background:rgba(42,111,219,0.08);border:1px solid rgba(120,170,255,0.25);border-radius:10px;padding:11px 13px;">
+              <p style="margin:0 0 8px;font-size:0.64rem;color:#9cc0ff;font-weight:700;letter-spacing:0.5px;">🔗 ¿La foto está en Google Drive? Pega el link:</p>
+              <div style="display:flex;gap:7px;">
+                <input id="cov-avatar-drive" type="text" placeholder="Link Drive → Perfil" class="adm-in" style="font-size:0.74rem;padding:9px 11px;">
+                <button onClick="{{ onDriveAvatar }}" style="flex:0 0 auto;background:#2A6FDB;border:none;color:#fff;font-size:0.64rem;font-weight:700;padding:0 12px;border-radius:8px;cursor:pointer;">Usar</button>
+              </div>
+            </div>
+          </div>
+        </sc-if>
+
         <!-- ░░ TAB LOGO & APP ░░ -->
         <sc-if value="{{ tabLogo }}" hint-placeholder-val="{{ false }}">
           <p class="adm-lbl">Tu logotipo</p>
@@ -360,6 +415,7 @@ class Component extends DCLogic {
       cats:this._load(K.cats, FC.DEF_CATS || []),
       reviews:this._load(K.reviews, FC.DEF_REVIEWS || []),
       logo:this._load(K.logo, null),
+      covers:this._load(K.covers || 'fc_covers_v1', {}),
       draft:{id:null, cat:'', antes:'', despues:''},
       vidDraft:{id:null, cat:'', antes:'', despues:''},
       revStars:5
@@ -403,6 +459,7 @@ class Component extends DCLogic {
   _apply(data){
     const p = this.pending; if (!p) return;
     if (p.type === 'logo'){ this.setState({logo:data}, () => this._saveKey(this.K.logo, this.state.logo)); }
+    else if (p.type === 'cover'){ this._setCover(p.which, data); }
     else if (p.type === 'draft'){ this.setState(s => ({draft:{...s.draft, [p.which]:data}})); }
     else if (p.type === 'service'){ this.setState(s => ({services:s.services.map(x => x.id===p.id?{...x,img:data}:x)}), () => this._saveKey(this.K.services, this.state.services)); }
     this.pending = null;
@@ -509,11 +566,29 @@ class Component extends DCLogic {
   toggleReview(id){ this.setState(s => ({reviews:s.reviews.map(r => r.id===id?{...r, published:r.published===false}:r)}), () => this._saveKey(this.K.reviews, this.state.reviews)); }
   delReview(id){ if (!confirm('¿Borrar esta reseña?')) return; this.setState(s => ({reviews:s.reviews.filter(r => r.id!==id)}), () => this._saveKey(this.K.reviews, this.state.reviews)); }
 
+  // ── Portadas (inicio y perfil del chat) ──
+  _coversKey(){ return this.K.covers || 'fc_covers_v1'; }
+  _setCover(which, val){
+    this.setState(s => ({covers:{...(s.covers||{}), [which]:val}}), () => this._saveKey(this._coversKey(), this.state.covers));
+  }
+  upCover(which){ this.upFor({type:'cover', which}); }
+  driveCover(which, inputId){
+    const el = document.getElementById(inputId);
+    const v = el && el.value.trim();
+    if (!v) return;
+    if (!this.FC.driveId || !this.FC.driveId(v)){ alert('Ese link no parece de Google Drive. Revísalo.'); return; }
+    this._setCover(which, v);
+    if (el) el.value = '';
+  }
+  delCover(which){
+    this.setState(s => { const c = {...(s.covers||{})}; delete c[which]; return {covers:c}; }, () => this._saveKey(this._coversKey(), this.state.covers));
+  }
+
   // ── Logo / Export ──
   upLogo(){ this.upFor({type:'logo'}); }
   delLogo(){ this.setState({logo:null}, () => { try { localStorage.removeItem(this.K.logo); } catch(e){} }); }
   exportData(){
-    const data = {works:this.state.works, services:this.state.services, videos:this.state.videos, cats:this.state.cats, reviews:this.state.reviews, logo:this.state.logo?'(logo guardado)':null};
+    const data = {works:this.state.works, services:this.state.services, videos:this.state.videos, cats:this.state.cats, reviews:this.state.reviews, logo:this.state.logo?'(logo guardado)':null, covers:this.state.covers||{}};
     const json = JSON.stringify(data, null, 2);
     try {
       navigator.clipboard.writeText(json).then(() => alert('✅ Datos copiados al portapapeles. Pégalos en una nota para guardarlos.'), () => this._fallbackCopy(json));
@@ -529,7 +604,7 @@ class Component extends DCLogic {
 
   renderVals(){
     const s = this.state;
-    const tabNames = ['Trabajos','Categorías','Vídeos','Servicios','Reseñas','Logo & App'];
+    const tabNames = ['Trabajos','Categorías','Vídeos','Servicios','Reseñas','Portadas','Logo & App'];
     const tabs = tabNames.map(t => {
       const active = s.tab === t;
       return { label:t, bg:active?'#C5A059':'transparent', fg:active?'#0a0a0a':'#e8c97a', bd:active?'#C5A059':'rgba(197,160,89,0.3)', onClick:() => this.setTab(t) };
@@ -590,7 +665,7 @@ class Component extends DCLogic {
       onFile:(e) => this.onFile(e),
       tabs,
       tabTrabajos: s.tab==='Trabajos', tabCats: s.tab==='Categorías', tabVideos: s.tab==='Vídeos',
-      tabServicios: s.tab==='Servicios', tabResenas: s.tab==='Reseñas', tabLogo: s.tab==='Logo & App',
+      tabServicios: s.tab==='Servicios', tabResenas: s.tab==='Reseñas', tabPortadas: s.tab==='Portadas', tabLogo: s.tab==='Logo & App',
       catOpts, workList, workCount:(s.works||[]).length,
       workFormTitle: s.draft.id ? 'Editar trabajo' : 'Nuevo trabajo',
       workSaveLabel: s.draft.id ? 'Guardar cambios' : 'Publicar trabajo',
@@ -613,6 +688,16 @@ class Component extends DCLogic {
       reviewList, revStarPicker, onAddReview:() => this.addReview(),
       logoImg:s.logo || 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==', hasLogo:!!s.logo, noLogo:!s.logo,
       onUpLogo:() => this.upLogo(), onDelLogo:() => this.delLogo(),
+      heroImg: (s.covers && s.covers.hero) ? this._driveImg(s.covers.hero) : 'portada.jpg',
+      hasHero: !!(s.covers && s.covers.hero),
+      heroBadge: (s.covers && s.covers.hero) ? '✓ PERSONALIZADA' : 'ORIGINAL',
+      onUpHero:() => this.upCover('hero'), onDelHero:() => this.delCover('hero'),
+      onDriveHero:() => this.driveCover('hero', 'cov-hero-drive'),
+      avatarImg: (s.covers && s.covers.avatar) ? this._driveImg(s.covers.avatar) : 'fatima-avatar.jpg',
+      hasAvatar: !!(s.covers && s.covers.avatar),
+      avatarBadge: (s.covers && s.covers.avatar) ? '✓ Foto personalizada' : 'Foto original',
+      onUpAvatar:() => this.upCover('avatar'), onDelAvatar:() => this.delCover('avatar'),
+      onDriveAvatar:() => this.driveCover('avatar', 'cov-avatar-drive'),
       onExport:() => this.exportData()
     };
   }
