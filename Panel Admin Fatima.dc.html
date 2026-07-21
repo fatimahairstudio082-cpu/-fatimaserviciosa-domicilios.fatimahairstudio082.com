@@ -206,8 +206,9 @@ input::placeholder,textarea::placeholder{color:rgba(255,255,255,0.3);}
                   <sc-if value="{{ f.soon }}" hint-placeholder-val="{{ false }}">
                     <div style="font-size:0.66rem;color:#e8c97a;font-weight:700;margin-top:3px;">🔔 {{ f.soonLabel }}</div>
                   </sc-if>
+                  <button onClick="{{ f.onCal }}" style="margin-top:8px;background:rgba(197,160,89,0.12);border:1px solid rgba(197,160,89,0.4);color:#C5A059;font-size:0.68rem;font-weight:700;padding:6px 11px;border-radius:8px;cursor:pointer;font-family:'Montserrat',sans-serif;">📅 Añadir a mi calendario</button>
                 </div>
-                <button onClick="{{ f.onDel }}" style="width:30px;height:30px;border-radius:8px;border:none;background:rgba(196,42,58,0.9);color:#fff;cursor:pointer;font-size:0.88rem;line-height:1;flex:0 0 auto;">×</button>
+                <button onClick="{{ f.onDel }}" style="width:30px;height:30px;border-radius:8px;border:none;background:rgba(196,42,58,0.9);color:#fff;cursor:pointer;font-size:0.88rem;line-height:1;flex:0 0 auto;align-self:flex-start;">×</button>
               </div>
             </sc-for>
             <sc-if value="{{ noFechas }}" hint-placeholder-val="{{ true }}">
@@ -681,6 +682,35 @@ class Component extends DCLogic {
     }).catch(()=>alert('No se pudo guardar.'));
   }
   delFecha(id){ if(!confirm('¿Borrar este recordatorio?')) return; try { window.FCF.deleteFecha(id).catch(()=>{}); } catch(e){} }
+  // Crea un evento .ics y lo abre: el móvil lo añade a su calendario (Google/Apple)
+  // y es el propio teléfono quien avisa el día, aunque la app esté cerrada.
+  addToCalendar(f){
+    const raw = (f.fecha || '').replace(/-/g, '');
+    if (raw.length !== 8){ alert('Este recordatorio no tiene fecha válida.'); return; }
+    const d = new Date(f.fecha + 'T00:00:00');
+    const nx = new Date(d.getTime() + 86400000);
+    const pad = (n) => String(n).padStart(2, '0');
+    const end = nx.getFullYear() + pad(nx.getMonth()+1) + pad(nx.getDate());
+    const esc = (t) => String(t || '').replace(/([,;\\])/g, '\\$1').replace(/\n/g, '\\n');
+    const now = new Date().toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+    const titulo = f.nota || 'Recordatorio';
+    const ics = [
+      'BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Fatima Caldea//Agenda//ES','CALSCALE:GREGORIAN',
+      'BEGIN:VEVENT','UID:fc' + Date.now() + '@fatimacaldea','DTSTAMP:' + now,
+      'DTSTART;VALUE=DATE:' + raw,'DTEND;VALUE=DATE:' + end,
+      'SUMMARY:' + esc(titulo),'DESCRIPTION:' + esc('Recordatorio de tu agenda · Fátima Caldea'),
+      'BEGIN:VALARM','ACTION:DISPLAY','DESCRIPTION:' + esc(titulo),'TRIGGER:PT9H','END:VALARM',
+      'END:VEVENT','END:VCALENDAR'
+    ].join('\r\n');
+    try {
+      const blob = new Blob([ics], {type:'text/calendar;charset=utf-8'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = 'recordatorio.ics';
+      document.body.appendChild(a); a.click();
+      setTimeout(() => { try { document.body.removeChild(a); URL.revokeObjectURL(url); } catch(e){} }, 800);
+    } catch(e){ alert('No se pudo abrir el calendario en este dispositivo.'); }
+  }
   fbLogin(){
     const em = (document.getElementById('fb-email')||{}).value || '';
     const pw = (document.getElementById('fb-pass')||{}).value || '';
@@ -938,7 +968,7 @@ class Component extends DCLogic {
         nota: f.nota || '', soon,
         soonLabel: dias === 0 ? 'Hoy' : (dias === 1 ? 'Mañana' : ('En ' + dias + ' días')),
         border: soon ? 'rgba(197,160,89,0.5)' : 'rgba(197,160,89,0.14)',
-        onDel: () => this.delFecha(f.id)
+        onDel: () => this.delFecha(f.id), onCal: () => this.addToCalendar(f)
       };
     });
 
