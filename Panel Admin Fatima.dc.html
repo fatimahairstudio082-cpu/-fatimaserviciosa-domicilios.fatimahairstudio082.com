@@ -912,7 +912,7 @@ class Component extends DCLogic {
 
   renderVals(){
     const s = this.state;
-    const tabNames = ['Citas','Trabajos','Categorías','Vídeos','Servicios','Reseñas','Portadas','Logo & App'];
+    const tabNames = ['Citas','Bloques','Agenda','Visitas','Trabajos','Categorías','Vídeos','Servicios','Reseñas','Portadas','Logo & App'];
     const tabs = tabNames.map(t => {
       const active = s.tab === t;
       return { label:t, bg:active?'#C5A059':'transparent', fg:active?'#0a0a0a':'#e8c97a', bd:active?'#C5A059':'rgba(197,160,89,0.3)', onClick:() => this.setTab(t) };
