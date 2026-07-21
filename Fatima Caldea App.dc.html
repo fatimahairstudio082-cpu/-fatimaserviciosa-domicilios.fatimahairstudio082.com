@@ -253,6 +253,47 @@ input::placeholder{color:rgba(255,255,255,0.32);}
   </section>
 
   <!-- RESEÑAS -->
+  <!-- DESCUBRE · bloques dinámicos (Amway, enlaces, HTML) -->
+  <sc-if value="{{ hasBloques }}" hint-placeholder-val="{{ false }}">
+    <section id="descubre" style="padding:54px 18px 30px;">
+      <p style="font-size:0.58rem;letter-spacing:4px;color:#C5A059;text-transform:uppercase;font-weight:700;margin:0 0 8px;">Explora</p>
+      <h2 style="font-family:'Cormorant Garamond',serif;font-size:2.1rem;line-height:1.05;margin:0 0 12px;color:#fff;">Descubre</h2>
+      <div style="width:46px;height:1px;background:#C5A059;margin-bottom:22px;"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+        <sc-for list="{{ bloquesView }}" as="b" hint-placeholder-count="2">
+          <div onClick="{{ b.onOpen }}" style="background:#141414;border:1px solid rgba(197,160,89,0.2);border-radius:16px;overflow:hidden;cursor:pointer;">
+            <div style="position:relative;aspect-ratio:4/3;background:linear-gradient(135deg,#1a1a1a,#0d0d0d);">
+              <sc-if value="{{ b.hasImg }}" hint-placeholder-val="{{ true }}">
+                <img src="{{ b.img }}" alt="{{ b.titulo }}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none'">
+              </sc-if>
+              <sc-if value="{{ b.noImg }}" hint-placeholder-val="{{ false }}">
+                <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:2rem;">🔗</div>
+              </sc-if>
+              <div style="position:absolute;right:8px;bottom:8px;width:34px;height:34px;border-radius:50%;background:rgba(197,160,89,0.92);color:#000;display:flex;align-items:center;justify-content:center;font-size:0.9rem;">↗</div>
+            </div>
+            <div style="padding:12px 13px 14px;">
+              <div style="font-size:0.86rem;font-weight:700;color:#fff;line-height:1.25;">{{ b.titulo }}</div>
+              <sc-if value="{{ b.hasDesc }}" hint-placeholder-val="{{ false }}">
+                <div style="font-size:0.7rem;color:rgba(255,255,255,0.5);margin-top:4px;line-height:1.4;">{{ b.desc }}</div>
+              </sc-if>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </section>
+  </sc-if>
+
+  <!-- MODAL BLOQUE (enlace incrustado o HTML propio) -->
+  <sc-if value="{{ hasBloqueModal }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;inset:0;z-index:140;background:rgba(0,0,0,0.85);display:flex;flex-direction:column;">
+      <div style="flex:0 0 auto;background:#0a0a0a;padding:12px 15px;display:flex;align-items:center;gap:11px;border-bottom:1px solid rgba(197,160,89,0.2);">
+        <strong style="flex:1;min-width:0;font-size:0.9rem;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ modalTitulo }}</strong>
+        <button onClick="{{ onCloseBloque }}" style="background:transparent;border:1px solid rgba(255,255,255,0.25);color:#fff;border-radius:8px;padding:7px 12px;cursor:pointer;font-family:'Montserrat',sans-serif;font-size:0.78rem;">✕ Cerrar</button>
+      </div>
+      <iframe id="fc-bloque-frame" title="Bloque" style="flex:1;width:100%;border:0;background:#fff;"></iframe>
+    </div>
+  </sc-if>
+
   <section id="resenas" style="padding:54px 18px 30px;background:#0d0d0d;">
     <p style="font-size:0.58rem;letter-spacing:4px;color:#C5A059;text-transform:uppercase;font-weight:700;margin:0 0 8px;">Clientas felices</p>
     <h2 style="font-family:'Cormorant Garamond',serif;font-size:2.1rem;line-height:1.05;margin:0 0 12px;color:#fff;">Reseñas &amp; Valoraciones</h2>
@@ -516,6 +557,8 @@ class Component extends DCLogic {
       bkZona:'',
       ubiLoading:false,
       ubiOk:false,
+      bloques:[],
+      bloqueModal:null,
       lightbox:null,
       draft:{id:null,tag:'',title:'',antes:'',despues:'',video:''},
       draftOpen:false,
@@ -646,11 +689,34 @@ class Component extends DCLogic {
       });
     };
     window.addEventListener('focus', this._onFocus);
+    // Firebase: cargar los bloques dinámicos (Amway/HTML) que la administradora
+    // haya publicado, y registrar la visita (ciudad aproximada) para su panel.
+    try {
+      if (window.FCF && window.FCF.ready()){
+        this._unsubBloques = window.FCF.watchBloques('caldea', (arr) => { if (arr) this.setState({bloques:arr}); });
+        window.FCF.logVisita('caldea');
+      }
+    } catch(e){}
   }
   componentWillUnmount(){
     if (this._onScroll) window.removeEventListener('scroll', this._onScroll);
     if (this._onFocus) window.removeEventListener('focus', this._onFocus);
+    if (this._unsubBloques){ this._unsubBloques(); this._unsubBloques=null; }
   }
+
+  openBloque(b){
+    if (!b) return;
+    if (b.tipo === 'enlace'){ if (b.enlace) window.open(b.enlace, '_blank'); return; }
+    this.setState({bloqueModal:b}, () => {
+      setTimeout(() => {
+        const f = document.getElementById('fc-bloque-frame');
+        if (!f) return;
+        if (b.tipo === 'html'){ f.removeAttribute('src'); f.srcdoc = b.html || '<p style=\"font-family:sans-serif;padding:20px\">Bloque vacío.</p>'; }
+        else { f.removeAttribute('srcdoc'); f.src = b.enlace || 'about:blank'; }
+      }, 40);
+    });
+  }
+  closeBloque(){ this.setState({bloqueModal:null}); }
 
   go(id){
     const el = document.getElementById(id);
@@ -989,6 +1055,17 @@ class Component extends DCLogic {
       };
     });
 
+    // Bloques dinámicos (Amway / enlaces / HTML) publicados por la administradora
+    const bloquesView = (s.bloques || []).slice().sort((a,b) => (a.orden||0)-(b.orden||0)).map(b => {
+      const img = b.img ? conv(b.img) : '';
+      return {
+        titulo: b.titulo || 'Descubre', desc: b.desc || '', hasDesc: !!b.desc,
+        img, hasImg: !!img, noImg: !img,
+        onOpen: () => this.openBloque(b)
+      };
+    });
+    const bm = s.bloqueModal;
+
     const starStr = (n) => '★★★★★'.slice(0, n) + '☆☆☆☆☆'.slice(0, 5 - n);
     const pubReviews = (s.reviews || []).filter(r => r.published !== false);
     const reviewsView = pubReviews.map(r => ({name:r.name, text:r.text, starRow:starStr(r.stars || 5)}));
@@ -1058,6 +1135,9 @@ class Component extends DCLogic {
       videos:videoWorks,
       videoCatChips, emptyVideos,
       catChips,
+      bloquesView, hasBloques: bloquesView.length > 0,
+      hasBloqueModal: !!bm, modalTitulo: bm ? (bm.titulo || 'Descubre') : '',
+      onCloseBloque:() => this.closeBloque(),
       reviewsView, hasReviews:reviewCount > 0, reviewCount, avgStars, avgStarsRow,
       starPicker, onSubmitReview:() => this.submitReview(),
       logo:s.logo || BLANK, hasLogo:!!s.logo, noLogo:!s.logo,

@@ -41,6 +41,13 @@ service cloud.firestore {
       allow read, update, delete: if isAdmin();
     }
 
+    // Bloques (tarjetas dinámicas: Amway, enlaces, HTML): los ven todas las
+    // clientas (lectura pública), pero solo la administradora los crea/edita.
+    match /bloques/{id} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+    }
+
     // Fechas/recordatorios personales de la administradora: privados por completo.
     match /fechas/{id} {
       allow read, write: if isAdmin();

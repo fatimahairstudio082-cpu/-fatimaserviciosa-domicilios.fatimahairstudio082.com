@@ -99,6 +99,57 @@ window.FCF = (function () {
       }, function (err) { cb(null, err); });
   }
 
+  // ── Bloques (tarjetas dinámicas: Amway, enlaces, HTML) ───────────────────
+  // Lectura pública (las ven las clientas); escritura solo la administradora.
+  function addBloque(data) {
+    if (!ready()) return Promise.reject(new Error("sin-conexion"));
+    var rec = {};
+    for (var k in data) if (data.hasOwnProperty(k)) rec[k] = data[k];
+    rec.origen = rec.origen || "caldea";
+    rec.creada = stamp();
+    return db.collection("bloques").add(rec);
+  }
+  function updateBloque(id, data) {
+    if (!ready()) return Promise.reject(new Error("sin-conexion"));
+    return db.collection("bloques").doc(id).update(data);
+  }
+  function deleteBloque(id) {
+    if (!ready()) return Promise.reject(new Error("sin-conexion"));
+    return db.collection("bloques").doc(id).delete();
+  }
+  function watchBloques(origen, cb) {
+    if (!ready()) { cb(null, new Error("sin-conexion")); return function () {}; }
+    return db.collection("bloques").where("origen", "==", origen)
+      .onSnapshot(function (snap) {
+        var arr = [];
+        snap.forEach(function (d) { var o = d.data() || {}; o.id = d.id; arr.push(o); });
+        cb(arr);
+      }, function (err) { cb(null, err); });
+  }
+
+  // ── Fechas / recordatorios (privados de la administradora) ───────────────
+  function addFecha(data) {
+    if (!ready()) return Promise.reject(new Error("sin-conexion"));
+    var rec = {};
+    for (var k in data) if (data.hasOwnProperty(k)) rec[k] = data[k];
+    rec.origen = rec.origen || "caldea";
+    rec.creada = stamp();
+    return db.collection("fechas").add(rec);
+  }
+  function deleteFecha(id) {
+    if (!ready()) return Promise.reject(new Error("sin-conexion"));
+    return db.collection("fechas").doc(id).delete();
+  }
+  function watchFechas(origen, cb) {
+    if (!ready()) { cb(null, new Error("sin-conexion")); return function () {}; }
+    return db.collection("fechas").where("origen", "==", origen)
+      .onSnapshot(function (snap) {
+        var arr = [];
+        snap.forEach(function (d) { var o = d.data() || {}; o.id = d.id; arr.push(o); });
+        cb(arr);
+      }, function (err) { cb(null, err); });
+  }
+
   // ── Auth administradora ─────────────────────────────────────────────────
   function signIn(email, pass) {
     if (!ready() || !auth) return Promise.reject(new Error("sin-conexion"));
@@ -116,6 +167,8 @@ window.FCF = (function () {
     ADMIN_EMAIL: ADMIN_EMAIL,
     addCita: addCita, watchCitas: watchCitas, updateCita: updateCita, deleteCita: deleteCita,
     logVisita: logVisita, watchVisitas: watchVisitas,
+    addBloque: addBloque, updateBloque: updateBloque, deleteBloque: deleteBloque, watchBloques: watchBloques,
+    addFecha: addFecha, deleteFecha: deleteFecha, watchFechas: watchFechas,
     signIn: signIn, signOut: signOut, onAuth: onAuth, currentUser: currentUser
   };
 })();
