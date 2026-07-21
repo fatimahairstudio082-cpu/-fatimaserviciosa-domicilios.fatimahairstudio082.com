@@ -10,6 +10,10 @@
 <helmet>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700&display=swap" rel="stylesheet">
 <script src="./fc-data.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="./fc-firebase.js"></script>
 <style>
 body{margin:0;background:#060606;font-family:'Montserrat',sans-serif;-webkit-font-smoothing:antialiased;}
 input::placeholder,textarea::placeholder{color:rgba(255,255,255,0.3);}
@@ -55,6 +59,63 @@ input::placeholder,textarea::placeholder{color:rgba(255,255,255,0.3);}
       </div>
 
       <div style="padding:20px 18px;">
+
+        <!-- ░░ TAB CITAS ░░ -->
+        <sc-if value="{{ tabCitas }}" hint-placeholder-val="{{ false }}">
+
+          <!-- Sin conexión / no autenticada: login de Firebase -->
+          <sc-if value="{{ citasNeedLogin }}" hint-placeholder-val="{{ true }}">
+            <div style="background:#141414;border:1px solid rgba(197,160,89,0.2);border-radius:16px;padding:20px;margin-bottom:18px;">
+              <h3 style="font-family:'Cormorant Garamond',serif;font-size:1.35rem;color:#fff;margin:0 0 6px;">Tus citas en la nube</h3>
+              <p style="color:rgba(255,255,255,0.55);font-size:0.78rem;line-height:1.6;margin:0 0 16px;">Conéctate con tu correo para ver, desde cualquier dispositivo, las citas que reservan tus clientas. Solo tú puedes verlas.</p>
+              <p class="adm-lbl">Correo</p>
+              <input id="fb-email" type="email" placeholder="tu correo" class="adm-in" style="margin-bottom:11px;">
+              <p class="adm-lbl">Contraseña</p>
+              <input id="fb-pass" type="password" placeholder="tu contraseña" class="adm-in" style="margin-bottom:14px;" onKeyDown="{{ onFbKey }}">
+              <button onClick="{{ onFbLogin }}" style="width:100%;background:#C5A059;color:#000;border:none;padding:13px;border-radius:11px;cursor:pointer;font-weight:700;font-size:0.85rem;font-family:'Montserrat',sans-serif;">Conectarme</button>
+              <sc-if value="{{ hasFbErr }}" hint-placeholder-val="{{ false }}">
+                <p style="color:#e6788a;font-size:0.72rem;margin:12px 0 0;line-height:1.5;">{{ fbErr }}</p>
+              </sc-if>
+            </div>
+          </sc-if>
+
+          <!-- Autenticada: lista de citas en tiempo real -->
+          <sc-if value="{{ citasReady }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;gap:10px;">
+              <p class="adm-lbl" style="margin:0;">Citas reservadas · {{ citasCount }}</p>
+              <button onClick="{{ onFbLogout }}" style="background:transparent;border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.55);font-size:0.66rem;font-weight:600;padding:7px 12px;border-radius:50px;cursor:pointer;font-family:'Montserrat',sans-serif;">Salir</button>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:11px;">
+              <sc-for list="{{ citasList }}" as="c" hint-placeholder-count="3">
+                <div style="background:#141414;border:1px solid {{ c.border }};border-radius:13px;padding:14px 15px;">
+                  <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:7px;">
+                    <span style="font-size:0.6rem;color:#C5A059;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;">{{ c.servicio }}</span>
+                    <span style="{{ c.estadoStyle }}">{{ c.estadoLabel }}</span>
+                  </div>
+                  <div style="font-size:0.98rem;color:#fff;font-weight:700;line-height:1.2;">{{ c.nombre }}</div>
+                  <div style="font-size:0.76rem;color:rgba(255,255,255,0.6);margin-top:4px;">📅 {{ c.fechaTexto }}</div>
+                  <div style="font-size:0.76rem;color:rgba(255,255,255,0.6);margin-top:2px;">📞 {{ c.telefono }} · {{ c.zona }}</div>
+                  <sc-if value="{{ c.hasDir }}" hint-placeholder-val="{{ true }}">
+                    <div style="font-size:0.74rem;color:rgba(255,255,255,0.5);margin-top:4px;">🏠 {{ c.direccion }}</div>
+                  </sc-if>
+                  <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">
+                    <a href="{{ c.waLink }}" target="_blank" style="text-decoration:none;background:#25D366;color:#fff;font-size:0.72rem;font-weight:700;padding:8px 13px;border-radius:8px;">💬 WhatsApp</a>
+                    <sc-if value="{{ c.hasMap }}" hint-placeholder-val="{{ false }}">
+                      <a href="{{ c.mapLink }}" target="_blank" style="text-decoration:none;background:rgba(197,160,89,0.12);border:1px solid rgba(197,160,89,0.4);color:#C5A059;font-size:0.72rem;font-weight:700;padding:8px 13px;border-radius:8px;">📍 Mapa</a>
+                    </sc-if>
+                    <sc-if value="{{ c.isPending }}" hint-placeholder-val="{{ true }}">
+                      <button onClick="{{ c.onConfirm }}" style="background:transparent;border:1px solid rgba(31,138,91,0.5);color:#5fd29a;font-size:0.72rem;font-weight:700;padding:8px 13px;border-radius:8px;cursor:pointer;font-family:'Montserrat',sans-serif;">✓ Confirmar</button>
+                    </sc-if>
+                    <button onClick="{{ c.onDel }}" style="background:rgba(196,42,58,0.9);border:none;color:#fff;font-size:0.85rem;padding:0 12px;border-radius:8px;cursor:pointer;line-height:1;">×</button>
+                  </div>
+                </div>
+              </sc-for>
+              <sc-if value="{{ noCitas }}" hint-placeholder-val="{{ true }}">
+                <div style="text-align:center;padding:34px 20px;color:rgba(255,255,255,0.38);font-size:0.82rem;">Todavía no hay citas reservadas. Aparecerán aquí en cuanto una clienta reserve desde la app.</div>
+              </sc-if>
+            </div>
+          </sc-if>
+        </sc-if>
 
         <!-- ░░ TAB TRABAJOS ░░ -->
         <sc-if value="{{ tabTrabajos }}" hint-placeholder-val="{{ true }}">
@@ -418,9 +479,53 @@ class Component extends DCLogic {
       covers:this._load(K.covers || 'fc_covers_v1', {}),
       draft:{id:null, cat:'', antes:'', despues:''},
       vidDraft:{id:null, cat:'', antes:'', despues:''},
-      revStars:5
+      revStars:5,
+      citas:[], fbUser:null, fbErr:''
     };
   }
+
+  componentDidMount(){
+    // Suscripción a Firebase: al iniciar sesión la administradora, escuchamos
+    // sus citas en tiempo real. Defensivo: si Firebase no cargó, no hace nada.
+    try {
+      if (window.FCF && window.FCF.ready()){
+        this._unsubAuth = window.FCF.onAuth((u) => {
+          this.setState({fbUser:u || null});
+          if (u){ this._subCitas(); }
+          else if (this._unsubCitas){ this._unsubCitas(); this._unsubCitas=null; this.setState({citas:[]}); }
+        });
+      }
+    } catch(e){}
+  }
+  componentWillUnmount(){
+    if (this._unsubCitas){ this._unsubCitas(); this._unsubCitas=null; }
+    if (this._unsubAuth){ this._unsubAuth(); this._unsubAuth=null; }
+  }
+  _subCitas(){
+    if (this._unsubCitas) return;
+    try {
+      this._unsubCitas = window.FCF.watchCitas('caldea', (arr, err) => {
+        if (arr) this.setState({citas:arr});
+      });
+    } catch(e){}
+  }
+  fbLogin(){
+    const em = (document.getElementById('fb-email')||{}).value || '';
+    const pw = (document.getElementById('fb-pass')||{}).value || '';
+    if (!em.trim() || !pw){ this.setState({fbErr:'Escribe tu correo y contraseña.'}); return; }
+    if (!window.FCF || !window.FCF.ready()){ this.setState({fbErr:'No hay conexión con la nube. Revisa tu internet.'}); return; }
+    this.setState({fbErr:''});
+    window.FCF.signIn(em.trim(), pw).catch((e) => {
+      let m = 'No se pudo entrar. Revisa tu correo y contraseña.';
+      if (e && e.code === 'auth/user-not-found') m = 'Ese correo no está registrado todavía en Firebase.';
+      if (e && e.code === 'auth/wrong-password') m = 'Contraseña incorrecta.';
+      if (e && e.code === 'auth/invalid-email') m = 'El correo no es válido.';
+      this.setState({fbErr:m});
+    });
+  }
+  fbLogout(){ try { if (window.FCF) window.FCF.signOut(); } catch(e){} }
+  confirmCita(id){ try { if (window.FCF) window.FCF.updateCita(id, {estado:'confirmada'}).catch(()=>{}); } catch(e){} }
+  deleteCita(id){ if (!confirm('¿Borrar esta cita?')) return; try { if (window.FCF) window.FCF.deleteCita(id).catch(()=>{}); } catch(e){} }
   _load(k, def){ try { const r = localStorage.getItem(k); return r ? JSON.parse(r) : def; } catch(e){ return def; } }
   _saveKey(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch(e){ alert('No hay espacio. Borra alguna foto antigua.'); return false; } }
   _uid(){ return (this.FC.uid ? this.FC.uid() : 'x'+Date.now().toString(36)+Math.random().toString(36).slice(2,5)); }
@@ -604,10 +709,30 @@ class Component extends DCLogic {
 
   renderVals(){
     const s = this.state;
-    const tabNames = ['Trabajos','Categorías','Vídeos','Servicios','Reseñas','Portadas','Logo & App'];
+    const tabNames = ['Citas','Trabajos','Categorías','Vídeos','Servicios','Reseñas','Portadas','Logo & App'];
     const tabs = tabNames.map(t => {
       const active = s.tab === t;
       return { label:t, bg:active?'#C5A059':'transparent', fg:active?'#0a0a0a':'#e8c97a', bd:active?'#C5A059':'rgba(197,160,89,0.3)', onClick:() => this.setTab(t) };
+    });
+
+    // ── Citas (desde Firebase, en tiempo real) ──
+    const fbOnline = !!(window.FCF && window.FCF.ready());
+    const citasList = (s.citas || []).slice().sort((a,b) => String(a.fecha||'').localeCompare(String(b.fecha||''))).map(c => {
+      const tel = String(c.telefono || '').replace(/\D/g, '');
+      const pending = c.estado !== 'confirmada';
+      const hasMap = !!(c.coords && c.coords.lat != null && c.coords.lng != null);
+      return {
+        servicio: c.servicio || 'Cita', nombre: c.nombre || 'Sin nombre',
+        fechaTexto: c.fechaTexto || c.fecha || '', telefono: c.telefono || '', zona: c.zona || '',
+        direccion: c.direccion || '', hasDir: !!c.direccion,
+        isPending: pending,
+        estadoLabel: pending ? 'Pendiente' : 'Confirmada',
+        estadoStyle: 'font-size:0.6rem;font-weight:700;padding:3px 9px;border-radius:50px;' + (pending ? 'background:rgba(197,160,89,0.16);color:#e8c97a;' : 'background:rgba(31,138,91,0.18);color:#5fd29a;'),
+        border: pending ? 'rgba(197,160,89,0.35)' : 'rgba(31,138,91,0.35)',
+        waLink: tel ? ('https://wa.me/' + tel) : '#',
+        hasMap, mapLink: hasMap ? ('https://www.google.com/maps?q=' + c.coords.lat + ',' + c.coords.lng) : '#',
+        onConfirm: () => this.confirmCita(c.id), onDel: () => this.deleteCita(c.id)
+      };
     });
 
     const catOpts = (s.cats || []).map(c => {
@@ -664,8 +789,16 @@ class Component extends DCLogic {
       onPinKey:(e) => { if (e.key==='Enter'){ e.preventDefault(); this.unlock(); } },
       onFile:(e) => this.onFile(e),
       tabs,
+      tabCitas: s.tab==='Citas',
       tabTrabajos: s.tab==='Trabajos', tabCats: s.tab==='Categorías', tabVideos: s.tab==='Vídeos',
       tabServicios: s.tab==='Servicios', tabResenas: s.tab==='Reseñas', tabPortadas: s.tab==='Portadas', tabLogo: s.tab==='Logo & App',
+      citasNeedLogin: !s.fbUser,
+      citasReady: !!s.fbUser,
+      citasList, citasCount: citasList.length, noCitas: citasList.length === 0,
+      onFbLogin:() => this.fbLogin(),
+      onFbKey:(e) => { if (e.key==='Enter'){ e.preventDefault(); this.fbLogin(); } },
+      onFbLogout:() => this.fbLogout(),
+      hasFbErr: !!s.fbErr, fbErr: s.fbErr,
       catOpts, workList, workCount:(s.works||[]).length,
       workFormTitle: s.draft.id ? 'Editar trabajo' : 'Nuevo trabajo',
       workSaveLabel: s.draft.id ? 'Guardar cambios' : 'Publicar trabajo',

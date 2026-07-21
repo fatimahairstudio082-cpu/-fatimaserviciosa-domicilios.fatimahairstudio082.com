@@ -16,6 +16,10 @@
 <meta name="apple-mobile-web-app-title" content="Fátima Caldea">
 <meta name="theme-color" content="#0d0d0d">
 <script src="./fc-data.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="./fc-firebase.js"></script>
 <style>
 @keyframes fc-fade{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
 @keyframes fc-pulse{0%,100%{box-shadow:0 8px 28px rgba(197,160,89,0.32)}50%{box-shadow:0 8px 34px rgba(197,160,89,0.7)}}
@@ -310,9 +314,14 @@ input::placeholder{color:rgba(255,255,255,0.32);}
     </div>
 
     <p style="font-size:0.66rem;letter-spacing:2px;color:#C5A059;font-weight:700;text-transform:uppercase;margin:0 0 12px;">3 · Tus datos</p>
-    <input id="i-dir" type="text" placeholder="Tu dirección completa" style="width:100%;padding:13px 15px;margin-bottom:11px;background:#0d0d0d;border:1px solid rgba(197,160,89,0.25);border-radius:10px;color:#fff;font-family:'Montserrat',sans-serif;font-size:0.85rem;outline:none;">
+    <input id="i-nom" type="text" placeholder="Tu nombre" style="width:100%;padding:13px 15px;margin-bottom:11px;background:#0d0d0d;border:1px solid rgba(197,160,89,0.25);border-radius:10px;color:#fff;font-family:'Montserrat',sans-serif;font-size:0.85rem;outline:none;">
+    <div style="display:flex;gap:8px;margin-bottom:11px;">
+      <input id="i-dir" type="text" placeholder="Tu dirección completa" style="flex:1;min-width:0;padding:13px 15px;background:#0d0d0d;border:1px solid rgba(197,160,89,0.25);border-radius:10px;color:#fff;font-family:'Montserrat',sans-serif;font-size:0.85rem;outline:none;">
+      <button onClick="{{ onUbicacion }}" style="flex:0 0 auto;background:rgba(197,160,89,0.12);border:1px solid rgba(197,160,89,0.4);color:#C5A059;border-radius:10px;padding:0 14px;cursor:pointer;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.78rem;white-space:nowrap;">{{ ubiLabel }}</button>
+    </div>
     <input id="i-tel" type="tel" placeholder="Tu número de teléfono" style="width:100%;padding:13px 15px;margin-bottom:11px;background:#0d0d0d;border:1px solid rgba(197,160,89,0.25);border-radius:10px;color:#fff;font-family:'Montserrat',sans-serif;font-size:0.85rem;outline:none;">
-    <input id="i-fh" type="datetime-local" style="width:100%;padding:13px 15px;margin-bottom:16px;background:#0d0d0d;border:1px solid rgba(197,160,89,0.25);border-radius:10px;color:#fff;font-family:'Montserrat',sans-serif;font-size:0.85rem;outline:none;color-scheme:dark;">
+    <input id="i-fh" type="datetime-local" style="width:100%;padding:13px 15px;margin-bottom:10px;background:#0d0d0d;border:1px solid rgba(197,160,89,0.25);border-radius:10px;color:#fff;font-family:'Montserrat',sans-serif;font-size:0.85rem;outline:none;color-scheme:dark;">
+    <p style="font-size:0.64rem;color:rgba(255,255,255,0.34);line-height:1.5;margin:0 0 16px;">🔒 Tus datos se usan solo para gestionar tu cita a domicilio. Compartir tu ubicación es opcional y ayuda a que Fátima llegue con precisión y con seguridad.</p>
     <button onClick="{{ onSendWA }}" style="width:100%;background:#25D366;color:#fff;border:none;padding:15px;border-radius:12px;cursor:pointer;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.92rem;box-shadow:0 6px 22px rgba(37,211,102,0.3);">📲 Enviar Cita por WhatsApp</button>
   </section>
 
@@ -505,6 +514,8 @@ class Component extends DCLogic {
       canInstall:false,
       bkServicio:'',
       bkZona:'',
+      ubiLoading:false,
+      ubiOk:false,
       lightbox:null,
       draft:{id:null,tag:'',title:'',antes:'',despues:'',video:''},
       draftOpen:false,
@@ -766,7 +777,35 @@ class Component extends DCLogic {
   closeLb(){ this.setState({lightbox:null}); }
   selBk(field, val){ this.setState({[field]: val}); }
 
+  // Localizador con consentimiento: la clienta pulsa para compartir su ubicación.
+  // Rellena la dirección y guarda coordenadas para que Fátima llegue con precisión
+  // y con seguridad al domicilio. Es opcional; si se rechaza, la app sigue igual.
+  captureUbicacion(){
+    if (!navigator.geolocation){ alert('Tu dispositivo no permite compartir ubicación. Escribe la dirección a mano.'); return; }
+    this.setState({ubiLoading:true});
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const lat = pos.coords.latitude, lon = pos.coords.longitude;
+        this._ubiCoords = {lat, lng:lon};
+        fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat=' + lat + '&lon=' + lon)
+          .then(r => r.json())
+          .then(d => {
+            const dir = (d && d.display_name) || (lat.toFixed(5) + ', ' + lon.toFixed(5));
+            const el = document.getElementById('i-dir'); if (el && !el.value.trim()) el.value = dir;
+            this.setState({ubiLoading:false, ubiOk:true});
+          })
+          .catch(() => {
+            const el = document.getElementById('i-dir'); if (el && !el.value.trim()) el.value = lat.toFixed(5) + ', ' + lon.toFixed(5);
+            this.setState({ubiLoading:false, ubiOk:true});
+          });
+      },
+      () => { this.setState({ubiLoading:false}); alert('No se pudo obtener tu ubicación. Revisa los permisos o escribe la dirección a mano.'); },
+      { enableHighAccuracy:true, timeout:8000 }
+    );
+  }
+
   sendWA(){
+    const nom = (document.getElementById('i-nom').value || '').trim();
     const dir = (document.getElementById('i-dir').value || '').trim();
     const tel = (document.getElementById('i-tel').value || '').trim();
     const fh = document.getElementById('i-fh').value;
@@ -776,8 +815,20 @@ class Component extends DCLogic {
     if (!tel){ alert('Escribe tu teléfono'); return; }
     if (!fh){ alert('Elige fecha y hora'); return; }
     const fecha = new Date(fh).toLocaleString('es-ES', {weekday:'long', day:'numeric', month:'long', hour:'2-digit', minute:'2-digit'});
+
+    // Guardar la cita en Firebase para que a Fátima le llegue y quede registrada
+    // en su panel desde cualquier dispositivo. Defensivo: si no hay conexión,
+    // no bloquea el envío por WhatsApp.
+    try {
+      if (window.FCF && window.FCF.ready()){
+        const cita = { origen:'caldea', nombre:nom, telefono:tel, servicio:this.state.bkServicio, zona:this.state.bkZona, fecha:fh, fechaTexto:fecha, direccion:dir, nota:'' };
+        if (this._ubiCoords) cita.coords = this._ubiCoords;
+        window.FCF.addCita(cita).catch(() => {});
+      }
+    } catch(e){}
+
     const wa = String(this.props.whatsapp || '34604822265').replace(/\D/g, '');
-    const msg = 'Hola Fátima! 👋\n\n✂️ Servicio: ' + this.state.bkServicio + '\n📍 Zona: ' + this.state.bkZona + '\n🏠 Dirección: ' + dir + '\n📞 Teléfono: ' + tel + '\n📅 Fecha y hora: ' + fecha + '\n\n¿Tienes disponibilidad? ¡Gracias!';
+    const msg = 'Hola Fátima! 👋\n\n' + (nom ? '🙋 Nombre: ' + nom + '\n' : '') + '✂️ Servicio: ' + this.state.bkServicio + '\n📍 Zona: ' + this.state.bkZona + '\n🏠 Dirección: ' + dir + '\n📞 Teléfono: ' + tel + '\n📅 Fecha y hora: ' + fecha + '\n\n¿Tienes disponibilidad? ¡Gracias!';
     window.open('https://wa.me/' + wa + '?text=' + encodeURIComponent(msg), '_blank');
   }
 
@@ -1017,6 +1068,8 @@ class Component extends DCLogic {
       showCalculadoras: this.props.showCalculadoras ?? true,
       srvOpts, zonaOpts,
       bkServicio:s.bkServicio, bkZona:s.bkZona,
+      ubiLabel: s.ubiLoading ? '⏳' : (s.ubiOk ? '📍 ✓' : '📍 Ubicación'),
+      onUbicacion:() => this.captureUbicacion(),
       onSendWA:() => this.sendWA(),
       navItems,
       goInicio:() => this.go('inicio'),

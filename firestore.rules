@@ -1,0 +1,54 @@
+rules_version = '2';
+// ── Reglas de seguridad de Firestore · proyecto mis-servicios-bb182 ──
+// Compartidas por las dos apps de servicios (Fátima Caldea + Jonatan & Fátima).
+//
+// IMPORTANTE: este archivo es la FUENTE DE VERDAD, pero NO se despliega solo.
+// Hay que pegarlo a mano en la consola de Firebase:
+//   Firebase console → Firestore Database → pestaña "Reglas" → pegar → Publicar.
+//
+// Principio: cualquiera puede CREAR una cita o registrar una visita (son formularios
+// públicos, sin login), pero SOLO la administradora (con su correo) puede LEER,
+// modificar o borrar. Así una clienta nunca ve los datos de otra.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isAdmin() {
+      return request.auth != null
+        && request.auth.token.email == 'fatimahairstudio082@gmail.com';
+    }
+
+    function validCita() {
+      let d = request.resource.data;
+      return d.origen in ['caldea', 'jonatan']
+        && d.telefono is string && d.telefono.size() > 0 && d.telefono.size() <= 30
+        && (!('nombre' in d)     || (d.nombre is string     && d.nombre.size() <= 80))
+        && (!('direccion' in d)  || (d.direccion is string  && d.direccion.size() <= 300))
+        && (!('servicio' in d)   || (d.servicio is string   && d.servicio.size() <= 120))
+        && (!('zona' in d)       || (d.zona is string       && d.zona.size() <= 120))
+        && (!('nota' in d)       || (d.nota is string       && d.nota.size() <= 500))
+        && d.estado == 'pendiente';
+    }
+
+    // Citas: crear libre (validado); leer/editar/borrar solo la administradora.
+    match /citas/{id} {
+      allow create: if validCita();
+      allow read, update, delete: if isAdmin();
+    }
+
+    // Visitas: registrar libre (solo ciudad aproximada); leer solo la administradora.
+    match /visitas/{id} {
+      allow create: if request.resource.data.origen in ['caldea', 'jonatan'];
+      allow read, update, delete: if isAdmin();
+    }
+
+    // Fechas/recordatorios personales de la administradora: privados por completo.
+    match /fechas/{id} {
+      allow read, write: if isAdmin();
+    }
+
+    // Todo lo demás: cerrado.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
