@@ -60,61 +60,181 @@ input::placeholder,textarea::placeholder{color:rgba(255,255,255,0.3);}
 
       <div style="padding:20px 18px;">
 
+        <!-- ░░ LOGIN NUBE (compartido: Citas / Bloques / Agenda / Visitas) ░░ -->
+        <sc-if value="{{ needCloudLogin }}" hint-placeholder-val="{{ true }}">
+          <div style="background:#141414;border:1px solid rgba(197,160,89,0.2);border-radius:16px;padding:20px;margin-bottom:18px;">
+            <h3 style="font-family:'Cormorant Garamond',serif;font-size:1.35rem;color:#fff;margin:0 0 6px;">Conéctate a tu nube</h3>
+            <p style="color:rgba(255,255,255,0.55);font-size:0.78rem;line-height:1.6;margin:0 0 16px;">Entra con tu correo para gestionar tus citas, bloques, agenda y ver quién visita tu web — desde cualquier dispositivo. Solo tú tienes acceso.</p>
+            <p class="adm-lbl">Correo</p>
+            <input id="fb-email" type="email" placeholder="tu correo" class="adm-in" style="margin-bottom:11px;">
+            <p class="adm-lbl">Contraseña</p>
+            <input id="fb-pass" type="password" placeholder="tu contraseña" class="adm-in" style="margin-bottom:14px;" onKeyDown="{{ onFbKey }}">
+            <button onClick="{{ onFbLogin }}" style="width:100%;background:#C5A059;color:#000;border:none;padding:13px;border-radius:11px;cursor:pointer;font-weight:700;font-size:0.85rem;font-family:'Montserrat',sans-serif;">Conectarme</button>
+            <sc-if value="{{ hasFbErr }}" hint-placeholder-val="{{ false }}">
+              <p style="color:#e6788a;font-size:0.72rem;margin:12px 0 0;line-height:1.5;">{{ fbErr }}</p>
+            </sc-if>
+          </div>
+        </sc-if>
+
+        <!-- barra "conectada" -->
+        <sc-if value="{{ cloudBar }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;gap:10px;">
+            <span style="font-size:0.66rem;color:#5fd29a;font-weight:700;">● Conectada a tu nube</span>
+            <button onClick="{{ onFbLogout }}" style="background:transparent;border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.55);font-size:0.66rem;font-weight:600;padding:7px 12px;border-radius:50px;cursor:pointer;font-family:'Montserrat',sans-serif;">Salir</button>
+          </div>
+        </sc-if>
+
         <!-- ░░ TAB CITAS ░░ -->
-        <sc-if value="{{ tabCitas }}" hint-placeholder-val="{{ false }}">
-
-          <!-- Sin conexión / no autenticada: login de Firebase -->
-          <sc-if value="{{ citasNeedLogin }}" hint-placeholder-val="{{ true }}">
-            <div style="background:#141414;border:1px solid rgba(197,160,89,0.2);border-radius:16px;padding:20px;margin-bottom:18px;">
-              <h3 style="font-family:'Cormorant Garamond',serif;font-size:1.35rem;color:#fff;margin:0 0 6px;">Tus citas en la nube</h3>
-              <p style="color:rgba(255,255,255,0.55);font-size:0.78rem;line-height:1.6;margin:0 0 16px;">Conéctate con tu correo para ver, desde cualquier dispositivo, las citas que reservan tus clientas. Solo tú puedes verlas.</p>
-              <p class="adm-lbl">Correo</p>
-              <input id="fb-email" type="email" placeholder="tu correo" class="adm-in" style="margin-bottom:11px;">
-              <p class="adm-lbl">Contraseña</p>
-              <input id="fb-pass" type="password" placeholder="tu contraseña" class="adm-in" style="margin-bottom:14px;" onKeyDown="{{ onFbKey }}">
-              <button onClick="{{ onFbLogin }}" style="width:100%;background:#C5A059;color:#000;border:none;padding:13px;border-radius:11px;cursor:pointer;font-weight:700;font-size:0.85rem;font-family:'Montserrat',sans-serif;">Conectarme</button>
-              <sc-if value="{{ hasFbErr }}" hint-placeholder-val="{{ false }}">
-                <p style="color:#e6788a;font-size:0.72rem;margin:12px 0 0;line-height:1.5;">{{ fbErr }}</p>
-              </sc-if>
-            </div>
-          </sc-if>
-
-          <!-- Autenticada: lista de citas en tiempo real -->
-          <sc-if value="{{ citasReady }}" hint-placeholder-val="{{ false }}">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;gap:10px;">
-              <p class="adm-lbl" style="margin:0;">Citas reservadas · {{ citasCount }}</p>
-              <button onClick="{{ onFbLogout }}" style="background:transparent;border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.55);font-size:0.66rem;font-weight:600;padding:7px 12px;border-radius:50px;cursor:pointer;font-family:'Montserrat',sans-serif;">Salir</button>
-            </div>
-            <div style="display:flex;flex-direction:column;gap:11px;">
-              <sc-for list="{{ citasList }}" as="c" hint-placeholder-count="3">
-                <div style="background:#141414;border:1px solid {{ c.border }};border-radius:13px;padding:14px 15px;">
-                  <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:7px;">
-                    <span style="font-size:0.6rem;color:#C5A059;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;">{{ c.servicio }}</span>
-                    <span style="{{ c.estadoStyle }}">{{ c.estadoLabel }}</span>
-                  </div>
-                  <div style="font-size:0.98rem;color:#fff;font-weight:700;line-height:1.2;">{{ c.nombre }}</div>
-                  <div style="font-size:0.76rem;color:rgba(255,255,255,0.6);margin-top:4px;">📅 {{ c.fechaTexto }}</div>
-                  <div style="font-size:0.76rem;color:rgba(255,255,255,0.6);margin-top:2px;">📞 {{ c.telefono }} · {{ c.zona }}</div>
-                  <sc-if value="{{ c.hasDir }}" hint-placeholder-val="{{ true }}">
-                    <div style="font-size:0.74rem;color:rgba(255,255,255,0.5);margin-top:4px;">🏠 {{ c.direccion }}</div>
-                  </sc-if>
-                  <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">
-                    <a href="{{ c.waLink }}" target="_blank" style="text-decoration:none;background:#25D366;color:#fff;font-size:0.72rem;font-weight:700;padding:8px 13px;border-radius:8px;">💬 WhatsApp</a>
-                    <sc-if value="{{ c.hasMap }}" hint-placeholder-val="{{ false }}">
-                      <a href="{{ c.mapLink }}" target="_blank" style="text-decoration:none;background:rgba(197,160,89,0.12);border:1px solid rgba(197,160,89,0.4);color:#C5A059;font-size:0.72rem;font-weight:700;padding:8px 13px;border-radius:8px;">📍 Mapa</a>
-                    </sc-if>
-                    <sc-if value="{{ c.isPending }}" hint-placeholder-val="{{ true }}">
-                      <button onClick="{{ c.onConfirm }}" style="background:transparent;border:1px solid rgba(31,138,91,0.5);color:#5fd29a;font-size:0.72rem;font-weight:700;padding:8px 13px;border-radius:8px;cursor:pointer;font-family:'Montserrat',sans-serif;">✓ Confirmar</button>
-                    </sc-if>
-                    <button onClick="{{ c.onDel }}" style="background:rgba(196,42,58,0.9);border:none;color:#fff;font-size:0.85rem;padding:0 12px;border-radius:8px;cursor:pointer;line-height:1;">×</button>
-                  </div>
+        <sc-if value="{{ showCitas }}" hint-placeholder-val="{{ false }}">
+          <p class="adm-lbl" style="margin-bottom:14px;">Citas reservadas · {{ citasCount }}</p>
+          <div style="display:flex;flex-direction:column;gap:11px;">
+            <sc-for list="{{ citasList }}" as="c" hint-placeholder-count="3">
+              <div style="background:#141414;border:1px solid {{ c.border }};border-radius:13px;padding:14px 15px;">
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:7px;">
+                  <span style="font-size:0.6rem;color:#C5A059;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;">{{ c.servicio }}</span>
+                  <span style="{{ c.estadoStyle }}">{{ c.estadoLabel }}</span>
                 </div>
+                <div style="font-size:0.98rem;color:#fff;font-weight:700;line-height:1.2;">{{ c.nombre }}</div>
+                <div style="font-size:0.76rem;color:rgba(255,255,255,0.6);margin-top:4px;">📅 {{ c.fechaTexto }}</div>
+                <div style="font-size:0.76rem;color:rgba(255,255,255,0.6);margin-top:2px;">📞 {{ c.telefono }} · {{ c.zona }}</div>
+                <sc-if value="{{ c.hasDir }}" hint-placeholder-val="{{ true }}">
+                  <div style="font-size:0.74rem;color:rgba(255,255,255,0.5);margin-top:4px;">🏠 {{ c.direccion }}</div>
+                </sc-if>
+                <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">
+                  <a href="{{ c.waLink }}" target="_blank" style="text-decoration:none;background:#25D366;color:#fff;font-size:0.72rem;font-weight:700;padding:8px 13px;border-radius:8px;">💬 WhatsApp</a>
+                  <sc-if value="{{ c.hasMap }}" hint-placeholder-val="{{ false }}">
+                    <a href="{{ c.mapLink }}" target="_blank" style="text-decoration:none;background:rgba(197,160,89,0.12);border:1px solid rgba(197,160,89,0.4);color:#C5A059;font-size:0.72rem;font-weight:700;padding:8px 13px;border-radius:8px;">📍 Mapa</a>
+                  </sc-if>
+                  <sc-if value="{{ c.isPending }}" hint-placeholder-val="{{ true }}">
+                    <button onClick="{{ c.onConfirm }}" style="background:transparent;border:1px solid rgba(31,138,91,0.5);color:#5fd29a;font-size:0.72rem;font-weight:700;padding:8px 13px;border-radius:8px;cursor:pointer;font-family:'Montserrat',sans-serif;">✓ Confirmar</button>
+                  </sc-if>
+                  <button onClick="{{ c.onDel }}" style="background:rgba(196,42,58,0.9);border:none;color:#fff;font-size:0.85rem;padding:0 12px;border-radius:8px;cursor:pointer;line-height:1;">×</button>
+                </div>
+              </div>
+            </sc-for>
+            <sc-if value="{{ noCitas }}" hint-placeholder-val="{{ true }}">
+              <div style="text-align:center;padding:34px 20px;color:rgba(255,255,255,0.38);font-size:0.82rem;">Todavía no hay citas reservadas. Aparecerán aquí en cuanto una clienta reserve desde la app.</div>
+            </sc-if>
+          </div>
+        </sc-if>
+
+        <!-- ░░ TAB BLOQUES ░░ -->
+        <sc-if value="{{ showBloques }}" hint-placeholder-val="{{ false }}">
+          <p style="color:rgba(255,255,255,0.55);font-size:0.78rem;line-height:1.6;margin:0 0 16px;">Crea tarjetas que aparecen en la sección “Descubre” de tu web. Al tocarlas, tus clientas abren un enlace (por ejemplo tu catálogo de Amway) o un bloque tuyo de HTML.</p>
+          <div style="background:#141414;border:1px solid rgba(197,160,89,0.2);border-radius:16px;padding:18px;margin-bottom:22px;">
+            <h3 style="font-family:'Cormorant Garamond',serif;font-size:1.35rem;color:#fff;margin:0 0 14px;">{{ bqFormTitle }}</h3>
+            <p class="adm-lbl">Título</p>
+            <input id="bq-titulo" type="text" placeholder="Ej. Catálogo Amway" class="adm-in" style="margin-bottom:11px;">
+            <p class="adm-lbl">Descripción (opcional)</p>
+            <input id="bq-desc" type="text" placeholder="Ej. Nutrición, belleza y hogar" class="adm-in" style="margin-bottom:14px;">
+
+            <p class="adm-lbl">¿Qué hace al tocarla?</p>
+            <div style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:14px;">
+              <sc-for list="{{ bqTipoOpts }}" as="o" hint-placeholder-count="3">
+                <button onClick="{{ o.onClick }}" style="background:{{ o.bg }};color:{{ o.fg }};border:1px solid {{ o.bd }};padding:8px 13px;border-radius:50px;font-size:0.68rem;font-weight:600;cursor:pointer;font-family:'Montserrat',sans-serif;">{{ o.label }}</button>
               </sc-for>
-              <sc-if value="{{ noCitas }}" hint-placeholder-val="{{ true }}">
-                <div style="text-align:center;padding:34px 20px;color:rgba(255,255,255,0.38);font-size:0.82rem;">Todavía no hay citas reservadas. Aparecerán aquí en cuanto una clienta reserve desde la app.</div>
+            </div>
+
+            <sc-if value="{{ bqShowEnlace }}" hint-placeholder-val="{{ true }}">
+              <p class="adm-lbl">Enlace (URL)</p>
+              <input id="bq-enlace" type="text" placeholder="https://www.amway.es/..." class="adm-in" style="margin-bottom:14px;">
+            </sc-if>
+            <sc-if value="{{ bqShowHtml }}" hint-placeholder-val="{{ false }}">
+              <p class="adm-lbl">Tu código HTML</p>
+              <textarea id="bq-html" placeholder="Pega aquí tu HTML..." rows="4" class="adm-in" style="margin-bottom:14px;resize:vertical;font-family:monospace;font-size:0.76rem;"></textarea>
+            </sc-if>
+
+            <p class="adm-lbl">Imagen de la tarjeta</p>
+            <div style="display:flex;gap:12px;align-items:flex-start;margin-bottom:10px;">
+              <div style="width:96px;aspect-ratio:4/3;border-radius:10px;border:1px dashed rgba(197,160,89,0.4);background:#0d0d0d;position:relative;overflow:hidden;flex:0 0 auto;">
+                <sc-if value="{{ bqHasImg }}" hint-placeholder-val="{{ false }}">
+                  <div style="position:absolute;inset:0;background-image:url('{{ bqImg }}');background-size:cover;background-position:center;"></div>
+                </sc-if>
+              </div>
+              <button onClick="{{ onUpBloqueImg }}" style="background:rgba(197,160,89,0.12);border:1px solid rgba(197,160,89,0.35);color:#C5A059;font-size:0.72rem;font-weight:700;padding:10px 14px;border-radius:8px;cursor:pointer;font-family:'Montserrat',sans-serif;">📷 Subir</button>
+            </div>
+            <div style="background:rgba(42,111,219,0.08);border:1px solid rgba(120,170,255,0.25);border-radius:10px;padding:10px 12px;margin-bottom:16px;display:flex;gap:7px;">
+              <input id="bq-drive" type="text" placeholder="…o pega un link de Drive" class="adm-in" style="font-size:0.74rem;padding:9px 11px;">
+              <button onClick="{{ onDriveBloque }}" style="flex:0 0 auto;background:#2A6FDB;border:none;color:#fff;font-size:0.64rem;font-weight:700;padding:0 12px;border-radius:8px;cursor:pointer;">Usar</button>
+            </div>
+
+            <div style="display:flex;gap:9px;">
+              <button onClick="{{ onSaveBloque }}" style="flex:1;background:#C5A059;color:#000;border:none;padding:13px;border-radius:11px;cursor:pointer;font-weight:700;font-size:0.85rem;font-family:'Montserrat',sans-serif;">{{ bqSaveLabel }}</button>
+              <sc-if value="{{ editingBloque }}" hint-placeholder-val="{{ false }}">
+                <button onClick="{{ onCancelBloque }}" style="flex:0 0 auto;background:transparent;border:1px solid rgba(255,255,255,0.25);color:rgba(255,255,255,0.7);padding:13px 18px;border-radius:11px;cursor:pointer;font-weight:600;font-size:0.8rem;font-family:'Montserrat',sans-serif;">Cancelar</button>
               </sc-if>
             </div>
-          </sc-if>
+          </div>
+
+          <p class="adm-lbl" style="margin-bottom:14px;">Bloques publicados · {{ bloquesCount }}</p>
+          <div style="display:flex;flex-direction:column;gap:11px;">
+            <sc-for list="{{ bloquesAdminList }}" as="b" hint-placeholder-count="2">
+              <div style="display:flex;gap:12px;align-items:center;background:#141414;border:1px solid rgba(197,160,89,0.14);border-radius:13px;padding:11px;">
+                <div style="width:52px;height:44px;border-radius:8px;background-image:url('{{ b.thumb }}');background-size:cover;background-position:center;background-color:#222;flex:0 0 auto;"></div>
+                <div style="flex:1;min-width:0;">
+                  <div style="font-size:0.9rem;color:#fff;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ b.titulo }}</div>
+                  <div style="font-size:0.62rem;color:#C5A059;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;margin-top:2px;">{{ b.tipoLabel }}</div>
+                </div>
+                <button onClick="{{ b.onEdit }}" style="width:32px;height:32px;border-radius:8px;border:none;background:rgba(255,255,255,0.9);color:#000;cursor:pointer;font-size:0.78rem;">✎</button>
+                <button onClick="{{ b.onDel }}" style="width:32px;height:32px;border-radius:8px;border:none;background:rgba(196,42,58,0.95);color:#fff;cursor:pointer;font-size:0.9rem;line-height:1;">×</button>
+              </div>
+            </sc-for>
+            <sc-if value="{{ noBloques }}" hint-placeholder-val="{{ true }}">
+              <div style="text-align:center;padding:30px 20px;color:rgba(255,255,255,0.38);font-size:0.82rem;">Aún no has creado bloques. El primero aparecerá en la sección “Descubre” de tu web.</div>
+            </sc-if>
+          </div>
+        </sc-if>
+
+        <!-- ░░ TAB AGENDA ░░ -->
+        <sc-if value="{{ showAgenda }}" hint-placeholder-val="{{ false }}">
+          <p style="color:rgba(255,255,255,0.55);font-size:0.78rem;line-height:1.6;margin:0 0 16px;">Tu agenda privada de fechas importantes: cumpleaños de clientas, recordatorios, seguimientos. Solo tú las ves.</p>
+          <div style="background:#141414;border:1px solid rgba(197,160,89,0.2);border-radius:16px;padding:18px;margin-bottom:22px;">
+            <p class="adm-lbl">Nueva fecha</p>
+            <input id="fe-fecha" type="date" class="adm-in" style="margin-bottom:11px;color-scheme:dark;">
+            <input id="fe-nota" type="text" placeholder="Ej. Cumple de María · llamar a Lucía" class="adm-in" style="margin-bottom:14px;">
+            <button onClick="{{ onAddFecha }}" style="width:100%;background:#C5A059;color:#000;border:none;padding:12px;border-radius:10px;cursor:pointer;font-weight:700;font-size:0.82rem;font-family:'Montserrat',sans-serif;">＋ Añadir recordatorio</button>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:10px;">
+            <sc-for list="{{ fechasList }}" as="f" hint-placeholder-count="3">
+              <div style="display:flex;align-items:center;gap:12px;background:#141414;border:1px solid {{ f.border }};border-radius:12px;padding:12px 14px;">
+                <div style="text-align:center;flex:0 0 auto;min-width:46px;">
+                  <div style="font-size:1.3rem;font-weight:700;color:#C5A059;line-height:1;">{{ f.dia }}</div>
+                  <div style="font-size:0.58rem;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:0.5px;">{{ f.mes }}</div>
+                </div>
+                <div style="flex:1;min-width:0;">
+                  <div style="font-size:0.86rem;color:#fff;line-height:1.3;">{{ f.nota }}</div>
+                  <sc-if value="{{ f.soon }}" hint-placeholder-val="{{ false }}">
+                    <div style="font-size:0.66rem;color:#e8c97a;font-weight:700;margin-top:3px;">🔔 {{ f.soonLabel }}</div>
+                  </sc-if>
+                  <button onClick="{{ f.onCal }}" style="margin-top:8px;background:rgba(197,160,89,0.12);border:1px solid rgba(197,160,89,0.4);color:#C5A059;font-size:0.68rem;font-weight:700;padding:6px 11px;border-radius:8px;cursor:pointer;font-family:'Montserrat',sans-serif;">📅 Añadir a mi calendario</button>
+                </div>
+                <button onClick="{{ f.onDel }}" style="width:30px;height:30px;border-radius:8px;border:none;background:rgba(196,42,58,0.9);color:#fff;cursor:pointer;font-size:0.88rem;line-height:1;flex:0 0 auto;align-self:flex-start;">×</button>
+              </div>
+            </sc-for>
+            <sc-if value="{{ noFechas }}" hint-placeholder-val="{{ true }}">
+              <div style="text-align:center;padding:30px 20px;color:rgba(255,255,255,0.38);font-size:0.82rem;">No tienes recordatorios todavía.</div>
+            </sc-if>
+          </div>
+        </sc-if>
+
+        <!-- ░░ TAB VISITAS ░░ -->
+        <sc-if value="{{ showVisitas }}" hint-placeholder-val="{{ false }}">
+          <p style="color:rgba(255,255,255,0.55);font-size:0.78rem;line-height:1.6;margin:0 0 16px;">Quién entra a tu web y desde qué ciudad (aproximada). Es información de seguridad y de saber desde dónde te buscan.</p>
+          <p class="adm-lbl" style="margin-bottom:14px;">Visitas recientes · {{ visitasCount }}</p>
+          <div style="display:flex;flex-direction:column;gap:9px;">
+            <sc-for list="{{ visitasList }}" as="v" hint-placeholder-count="4">
+              <div style="display:flex;align-items:center;gap:11px;background:#141414;border:1px solid rgba(197,160,89,0.14);border-radius:11px;padding:11px 14px;">
+                <span style="font-size:1.2rem;">📍</span>
+                <div style="flex:1;min-width:0;">
+                  <div style="font-size:0.86rem;color:#fff;font-weight:600;">{{ v.lugar }}</div>
+                  <div style="font-size:0.66rem;color:rgba(255,255,255,0.45);margin-top:2px;">{{ v.cuando }}</div>
+                </div>
+              </div>
+            </sc-for>
+            <sc-if value="{{ noVisitas }}" hint-placeholder-val="{{ true }}">
+              <div style="text-align:center;padding:30px 20px;color:rgba(255,255,255,0.38);font-size:0.82rem;">Todavía no hay visitas registradas.</div>
+            </sc-if>
+          </div>
         </sc-if>
 
         <!-- ░░ TAB TRABAJOS ░░ -->
@@ -480,34 +600,116 @@ class Component extends DCLogic {
       draft:{id:null, cat:'', antes:'', despues:''},
       vidDraft:{id:null, cat:'', antes:'', despues:''},
       revStars:5,
-      citas:[], fbUser:null, fbErr:''
+      citas:[], bloques:[], fechas:[], visitas:[],
+      bloqueDraft:{id:null, tipo:'enlace', img:''},
+      fbUser:null, fbErr:''
     };
   }
 
   componentDidMount(){
-    // Suscripción a Firebase: al iniciar sesión la administradora, escuchamos
-    // sus citas en tiempo real. Defensivo: si Firebase no cargó, no hace nada.
+    // Suscripción a Firebase: al iniciar sesión la administradora, escuchamos en
+    // tiempo real sus citas, bloques, agenda y visitas. Defensivo: si Firebase no
+    // cargó, no hace nada y el resto del panel (localStorage) sigue igual.
     try {
       if (window.FCF && window.FCF.ready()){
         this._unsubAuth = window.FCF.onAuth((u) => {
           this.setState({fbUser:u || null});
-          if (u){ this._subCitas(); }
-          else if (this._unsubCitas){ this._unsubCitas(); this._unsubCitas=null; this.setState({citas:[]}); }
+          if (u){ this._subCloud(); }
+          else { this._unsubCloud(); this.setState({citas:[], bloques:[], fechas:[], visitas:[]}); }
         });
       }
     } catch(e){}
   }
-  componentWillUnmount(){
-    if (this._unsubCitas){ this._unsubCitas(); this._unsubCitas=null; }
-    if (this._unsubAuth){ this._unsubAuth(); this._unsubAuth=null; }
-  }
-  _subCitas(){
-    if (this._unsubCitas) return;
+  componentWillUnmount(){ this._unsubCloud(); if (this._unsubAuth){ this._unsubAuth(); this._unsubAuth=null; } }
+  _subCloud(){
+    if (this._cloudSubbed) return;
+    this._cloudSubbed = true;
     try {
-      this._unsubCitas = window.FCF.watchCitas('caldea', (arr, err) => {
-        if (arr) this.setState({citas:arr});
-      });
+      this._subs = [
+        window.FCF.watchCitas('caldea', (arr) => { if (arr) this.setState({citas:arr}); }),
+        window.FCF.watchBloques('caldea', (arr) => { if (arr) this.setState({bloques:arr}); }),
+        window.FCF.watchFechas('caldea', (arr) => { if (arr) this.setState({fechas:arr}); }),
+        window.FCF.watchVisitas('caldea', (arr) => { if (arr) this.setState({visitas:arr}); })
+      ];
     } catch(e){}
+  }
+  _unsubCloud(){ (this._subs||[]).forEach(u => { try { u(); } catch(e){} }); this._subs=[]; this._cloudSubbed=false; }
+
+  // ── Bloques ──
+  setBloqueTipo(t){ this.setState(s => ({bloqueDraft:{...s.bloqueDraft, tipo:t}})); }
+  upBloqueImg(){ this.upFor({type:'bloqueImg'}); }
+  driveBloque(){ const el=document.getElementById('bq-drive'); const v=el&&el.value.trim(); if(!v) return; if(!this.FC.driveId||!this.FC.driveId(v)){ alert('Ese link no parece de Google Drive. Revísalo.'); return; } this.setState(s=>({bloqueDraft:{...s.bloqueDraft, img:v}})); if(el) el.value=''; }
+  editBloque(b){
+    this.setState({tab:'Bloques', bloqueDraft:{id:b.id, tipo:b.tipo||'enlace', img:b.img||''}}, () => {
+      const t=document.getElementById('bq-titulo'); if(t) t.value=b.titulo||'';
+      const d=document.getElementById('bq-desc'); if(d) d.value=b.desc||'';
+      const e=document.getElementById('bq-enlace'); if(e) e.value=b.enlace||'';
+      const h=document.getElementById('bq-html'); if(h) h.value=b.html||'';
+      try { window.scrollTo({top:0,behavior:'smooth'}); } catch(x){}
+    });
+  }
+  cancelBloque(){ this.setState({bloqueDraft:{id:null, tipo:'enlace', img:''}}, () => { ['bq-titulo','bq-desc','bq-enlace','bq-html','bq-drive'].forEach(id=>{const e=document.getElementById(id); if(e) e.value='';}); }); }
+  saveBloque(){
+    const d = this.state.bloqueDraft;
+    const titulo = (document.getElementById('bq-titulo')||{}).value || '';
+    const desc = (document.getElementById('bq-desc')||{}).value || '';
+    const enlace = (document.getElementById('bq-enlace')||{}).value || '';
+    const html = (document.getElementById('bq-html')||{}).value || '';
+    if (!titulo.trim()){ alert('Escribe un título para la tarjeta.'); return; }
+    if ((d.tipo==='enlace'||d.tipo==='embed')){
+      if (!enlace.trim()){ alert('Pega el enlace (URL) que abrirá la tarjeta.'); return; }
+      if (!/^https?:\/\//i.test(enlace.trim())){ alert('El enlace debe empezar por https://'); return; }
+    }
+    if (d.tipo==='html' && !html.trim()){ alert('Pega el código HTML del bloque.'); return; }
+    if (!window.FCF || !window.FCF.ready()){ alert('No hay conexión con la nube.'); return; }
+    const rec = { origen:'caldea', titulo:titulo.trim(), desc:desc.trim(), tipo:d.tipo, img:d.img||'', enlace:enlace.trim(), html:html };
+    const done = () => this.cancelBloque();
+    if (d.id) window.FCF.updateBloque(d.id, rec).then(done).catch(()=>alert('No se pudo guardar.'));
+    else window.FCF.addBloque(rec).then(done).catch(()=>alert('No se pudo guardar.'));
+  }
+  delBloque(id){ if(!confirm('¿Borrar este bloque?')) return; try { window.FCF.deleteBloque(id).catch(()=>{}); } catch(e){} }
+
+  // ── Agenda / recordatorios ──
+  addFecha(){
+    const fe=(document.getElementById('fe-fecha')||{}).value || '';
+    const no=(document.getElementById('fe-nota')||{}).value || '';
+    if (!fe){ alert('Elige una fecha.'); return; }
+    if (!no.trim()){ alert('Escribe una nota.'); return; }
+    if (!window.FCF || !window.FCF.ready()){ alert('No hay conexión con la nube.'); return; }
+    window.FCF.addFecha({origen:'caldea', fecha:fe, nota:no.trim()}).then(()=>{
+      const a=document.getElementById('fe-fecha'); if(a) a.value='';
+      const b=document.getElementById('fe-nota'); if(b) b.value='';
+    }).catch(()=>alert('No se pudo guardar.'));
+  }
+  delFecha(id){ if(!confirm('¿Borrar este recordatorio?')) return; try { window.FCF.deleteFecha(id).catch(()=>{}); } catch(e){} }
+  // Crea un evento .ics y lo abre: el móvil lo añade a su calendario (Google/Apple)
+  // y es el propio teléfono quien avisa el día, aunque la app esté cerrada.
+  addToCalendar(f){
+    const raw = (f.fecha || '').replace(/-/g, '');
+    if (raw.length !== 8){ alert('Este recordatorio no tiene fecha válida.'); return; }
+    const d = new Date(f.fecha + 'T00:00:00');
+    const nx = new Date(d.getTime() + 86400000);
+    const pad = (n) => String(n).padStart(2, '0');
+    const end = nx.getFullYear() + pad(nx.getMonth()+1) + pad(nx.getDate());
+    const esc = (t) => String(t || '').replace(/([,;\\])/g, '\\$1').replace(/\n/g, '\\n');
+    const now = new Date().toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+    const titulo = f.nota || 'Recordatorio';
+    const ics = [
+      'BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Fatima Caldea//Agenda//ES','CALSCALE:GREGORIAN',
+      'BEGIN:VEVENT','UID:fc' + Date.now() + '@fatimacaldea','DTSTAMP:' + now,
+      'DTSTART;VALUE=DATE:' + raw,'DTEND;VALUE=DATE:' + end,
+      'SUMMARY:' + esc(titulo),'DESCRIPTION:' + esc('Recordatorio de tu agenda · Fátima Caldea'),
+      'BEGIN:VALARM','ACTION:DISPLAY','DESCRIPTION:' + esc(titulo),'TRIGGER:PT9H','END:VALARM',
+      'END:VEVENT','END:VCALENDAR'
+    ].join('\r\n');
+    try {
+      const blob = new Blob([ics], {type:'text/calendar;charset=utf-8'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = 'recordatorio.ics';
+      document.body.appendChild(a); a.click();
+      setTimeout(() => { try { document.body.removeChild(a); URL.revokeObjectURL(url); } catch(e){} }, 800);
+    } catch(e){ alert('No se pudo abrir el calendario en este dispositivo.'); }
   }
   fbLogin(){
     const em = (document.getElementById('fb-email')||{}).value || '';
@@ -567,6 +769,7 @@ class Component extends DCLogic {
     else if (p.type === 'cover'){ this._setCover(p.which, data); }
     else if (p.type === 'draft'){ this.setState(s => ({draft:{...s.draft, [p.which]:data}})); }
     else if (p.type === 'service'){ this.setState(s => ({services:s.services.map(x => x.id===p.id?{...x,img:data}:x)}), () => this._saveKey(this.K.services, this.state.services)); }
+    else if (p.type === 'bloqueImg'){ this.setState(s => ({bloqueDraft:{...s.bloqueDraft, img:data}})); }
     this.pending = null;
   }
 
@@ -735,6 +938,50 @@ class Component extends DCLogic {
       };
     });
 
+    // ── Bloques ──
+    const bd = s.bloqueDraft || {tipo:'enlace', img:''};
+    const tipoDefs = [
+      {id:'enlace', label:'🔗 Abrir fuera'},
+      {id:'embed', label:'🪟 Abrir dentro'},
+      {id:'html', label:'</> HTML propio'}
+    ];
+    const bqTipoOpts = tipoDefs.map(t => {
+      const active = bd.tipo === t.id;
+      return { label:t.label, bg:active?'#C5A059':'transparent', fg:active?'#0a0a0a':'#e8c97a', bd:active?'#C5A059':'rgba(197,160,89,0.3)', onClick:() => this.setBloqueTipo(t.id) };
+    });
+    const tipoLabel = (tp) => tp==='html' ? 'Bloque HTML' : (tp==='embed' ? 'Enlace (dentro)' : 'Enlace');
+    const bloquesAdminList = (s.bloques || []).map(b => ({
+      titulo: b.titulo || 'Bloque', tipoLabel: tipoLabel(b.tipo),
+      thumb: this._driveImg(b.img || ''),
+      onEdit: () => this.editBloque(b), onDel: () => this.delBloque(b.id)
+    }));
+
+    // ── Agenda / fechas ──
+    const MESES = ['ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC'];
+    const hoy = new Date(); hoy.setHours(0,0,0,0);
+    const fechasList = (s.fechas || []).slice().sort((a,b) => String(a.fecha||'').localeCompare(String(b.fecha||''))).map(f => {
+      const d = f.fecha ? new Date(f.fecha + 'T00:00:00') : null;
+      const dias = d ? Math.round((d - hoy) / 86400000) : null;
+      const soon = dias !== null && dias >= 0 && dias <= 7;
+      return {
+        dia: d ? String(d.getDate()) : '–', mes: d ? MESES[d.getMonth()] : '',
+        nota: f.nota || '', soon,
+        soonLabel: dias === 0 ? 'Hoy' : (dias === 1 ? 'Mañana' : ('En ' + dias + ' días')),
+        border: soon ? 'rgba(197,160,89,0.5)' : 'rgba(197,160,89,0.14)',
+        onDel: () => this.delFecha(f.id), onCal: () => this.addToCalendar(f)
+      };
+    });
+
+    // ── Visitas ──
+    const visitasList = (s.visitas || []).slice().sort((a,b) => {
+      const ta = a.ts && a.ts.seconds ? a.ts.seconds : 0, tb = b.ts && b.ts.seconds ? b.ts.seconds : 0; return tb - ta;
+    }).slice(0, 100).map(v => {
+      const lugar = [v.ciudad, v.region, v.pais].filter(Boolean).join(', ') || 'Ubicación desconocida';
+      let cuando = '';
+      if (v.ts && v.ts.seconds) { try { cuando = new Date(v.ts.seconds * 1000).toLocaleString('es-ES', {day:'numeric', month:'short', hour:'2-digit', minute:'2-digit'}); } catch(e){} }
+      return { lugar, cuando };
+    });
+
     const catOpts = (s.cats || []).map(c => {
       const active = s.draft.cat === c.name;
       return { label:(c.icon?c.icon+' ':'')+c.name, bg:active?'#C5A059':'transparent', fg:active?'#0a0a0a':'#e8c97a', bd:active?'#C5A059':'rgba(197,160,89,0.3)', onClick:() => this.setDraftCat(c.name) };
@@ -789,16 +1036,34 @@ class Component extends DCLogic {
       onPinKey:(e) => { if (e.key==='Enter'){ e.preventDefault(); this.unlock(); } },
       onFile:(e) => this.onFile(e),
       tabs,
-      tabCitas: s.tab==='Citas',
       tabTrabajos: s.tab==='Trabajos', tabCats: s.tab==='Categorías', tabVideos: s.tab==='Vídeos',
       tabServicios: s.tab==='Servicios', tabResenas: s.tab==='Reseñas', tabPortadas: s.tab==='Portadas', tabLogo: s.tab==='Logo & App',
-      citasNeedLogin: !s.fbUser,
-      citasReady: !!s.fbUser,
+      // Nube (Citas / Bloques / Agenda / Visitas)
+      needCloudLogin: (['Citas','Bloques','Agenda','Visitas'].indexOf(s.tab) >= 0) && !s.fbUser,
+      cloudBar: (['Citas','Bloques','Agenda','Visitas'].indexOf(s.tab) >= 0) && !!s.fbUser,
+      showCitas: s.tab==='Citas' && !!s.fbUser,
+      showBloques: s.tab==='Bloques' && !!s.fbUser,
+      showAgenda: s.tab==='Agenda' && !!s.fbUser,
+      showVisitas: s.tab==='Visitas' && !!s.fbUser,
       citasList, citasCount: citasList.length, noCitas: citasList.length === 0,
       onFbLogin:() => this.fbLogin(),
       onFbKey:(e) => { if (e.key==='Enter'){ e.preventDefault(); this.fbLogin(); } },
       onFbLogout:() => this.fbLogout(),
       hasFbErr: !!s.fbErr, fbErr: s.fbErr,
+      // Bloques
+      bqFormTitle: bd.id ? 'Editar bloque' : 'Nuevo bloque',
+      bqSaveLabel: bd.id ? 'Guardar cambios' : 'Crear tarjeta',
+      editingBloque: !!bd.id,
+      bqTipoOpts, bqShowEnlace: bd.tipo==='enlace'||bd.tipo==='embed', bqShowHtml: bd.tipo==='html',
+      bqImg: this._driveImg(bd.img||''), bqHasImg: !!bd.img,
+      onUpBloqueImg:() => this.upBloqueImg(), onDriveBloque:() => this.driveBloque(),
+      onSaveBloque:() => this.saveBloque(), onCancelBloque:() => this.cancelBloque(),
+      bloquesAdminList, bloquesCount: bloquesAdminList.length, noBloques: bloquesAdminList.length === 0,
+      // Agenda
+      onAddFecha:() => this.addFecha(),
+      fechasList, noFechas: fechasList.length === 0,
+      // Visitas
+      visitasList, visitasCount: visitasList.length, noVisitas: visitasList.length === 0,
       catOpts, workList, workCount:(s.works||[]).length,
       workFormTitle: s.draft.id ? 'Editar trabajo' : 'Nuevo trabajo',
       workSaveLabel: s.draft.id ? 'Guardar cambios' : 'Publicar trabajo',
