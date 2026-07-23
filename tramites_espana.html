@@ -1,0 +1,1264 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Estudio Trámites España · Fátima Pro</title>
+<script src="preguntas_ccse.js"></script>
+<script src="preguntas_dgt_b.js"></script>
+<script src="preguntas_dgt_a.js"></script>
+<style>
+/* ════ Variables y reset ════ */
+:root{
+  --oro:#c9a84c;--oro2:#e6c97d;--bg:#070a10;--bg2:#0d1018;--pan:#11141d;
+  --linea:rgba(201,168,76,.2);--txt:#e8e8f0;--txt2:#8a90a0;
+  --verde:#27c97d;--rojo:#e05252;--azul:#4a90d9;
+  --br:12px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;min-height:100%;}
+body{
+  font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);
+  color:var(--txt);font-size:14px;overflow-x:hidden;
+}
+
+/* ── Tabs superiores ── */
+.nav-tabs{
+  display:flex;gap:4px;padding:10px 12px;background:var(--bg2);
+  border-bottom:1px solid var(--linea);overflow-x:auto;position:sticky;top:0;z-index:10;
+}
+.nav-tabs::-webkit-scrollbar{height:0;}
+.ntab{
+  display:flex;align-items:center;gap:6px;padding:9px 14px;border-radius:9px;
+  border:1px solid var(--linea);background:rgba(255,255,255,.02);cursor:pointer;
+  font-size:12px;font-weight:600;color:var(--txt2);white-space:nowrap;transition:all .13s;
+  font-family:inherit;
+}
+.ntab:hover{border-color:var(--oro);color:var(--txt);}
+.ntab.on{background:rgba(201,168,76,.14);border-color:var(--oro);color:var(--oro2);}
+
+/* ── Pantallas ── */
+.screen{display:none;padding:16px;}
+.screen.on{display:block;}
+
+/* ── Cards / paneles ── */
+.card{
+  background:var(--pan);border:1px solid var(--linea);border-radius:var(--br);
+  padding:16px;margin-bottom:14px;
+}
+.card-title{
+  font-size:11px;letter-spacing:1.5px;color:var(--oro2);font-weight:700;
+  text-transform:uppercase;margin-bottom:12px;
+}
+
+/* ── Botones de acción ── */
+.btn{
+  display:inline-flex;align-items:center;gap:6px;padding:10px 18px;border-radius:10px;
+  border:none;cursor:pointer;font-size:13px;font-weight:700;font-family:inherit;
+  transition:filter .12s,transform .12s;white-space:nowrap;
+}
+.btn:hover{filter:brightness(1.1);transform:translateY(-1px);}
+.btn:active{transform:translateY(0);}
+.btn-oro{background:linear-gradient(135deg,#c9a84c,#8a6420);color:#070a10;}
+.btn-verde{background:rgba(39,201,125,.15);color:var(--verde);border:1px solid rgba(39,201,125,.35);}
+.btn-azul{background:rgba(74,144,217,.15);color:var(--azul);border:1px solid rgba(74,144,217,.35);}
+.btn-rojo{background:rgba(224,82,82,.15);color:var(--rojo);border:1px solid rgba(224,82,82,.35);}
+.btn-gris{background:rgba(255,255,255,.07);color:var(--txt2);border:1px solid var(--linea);}
+.btn-sm{padding:7px 12px;font-size:11px;}
+.btn-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;}
+
+/* ── Progreso / barras ── */
+.barra-wrap{margin-bottom:10px;}
+.barra-lbl{display:flex;justify-content:space-between;font-size:11px;color:var(--txt2);margin-bottom:4px;}
+.barra-lbl b{color:var(--txt);}
+.barra-bg{background:rgba(255,255,255,.06);border-radius:99px;height:8px;overflow:hidden;}
+.barra-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--oro),var(--oro2));transition:width .5s;}
+.barra-fill.verde{background:linear-gradient(90deg,#1fa85f,var(--verde));}
+
+/* ── Motor de test ── */
+#test-wrap{display:none;}
+#test-wrap.on{display:block;}
+.test-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:12px 16px;background:var(--pan);border-radius:var(--br) var(--br) 0 0;
+  border:1px solid var(--linea);border-bottom:none;
+  font-size:12px;color:var(--txt2);
+}
+.test-header b{color:var(--oro2);}
+.timer{font-size:15px;font-weight:700;color:var(--oro);}
+.pregunta-box{
+  background:var(--pan);border:1px solid var(--linea);border-radius:0 0 var(--br) var(--br);
+  padding:20px;margin-bottom:12px;
+}
+.pregunta-num{font-size:10px;color:var(--txt2);letter-spacing:1px;margin-bottom:8px;}
+.pregunta-txt{font-size:15px;line-height:1.55;font-weight:500;margin-bottom:20px;}
+.opciones{display:grid;gap:9px;}
+.opcion{
+  display:flex;align-items:flex-start;gap:10px;padding:13px 16px;border-radius:10px;
+  border:1px solid var(--linea);background:rgba(255,255,255,.03);cursor:pointer;
+  transition:all .13s;font-size:13px;line-height:1.45;text-align:left;
+  font-family:inherit;color:var(--txt);width:100%;
+}
+.opcion:hover:not(:disabled){border-color:var(--oro);background:rgba(201,168,76,.07);}
+.opcion .letra{
+  width:24px;height:24px;border-radius:50%;border:1px solid var(--linea);
+  display:grid;place-items:center;font-size:11px;font-weight:700;
+  flex-shrink:0;background:rgba(255,255,255,.04);color:var(--oro2);
+}
+.opcion.correcta{border-color:var(--verde);background:rgba(39,201,125,.1);}
+.opcion.correcta .letra{background:var(--verde);color:#000;border-color:var(--verde);}
+.opcion.incorrecta{border-color:var(--rojo);background:rgba(224,82,82,.1);}
+.opcion.incorrecta .letra{background:var(--rojo);color:#fff;border-color:var(--rojo);}
+.opcion:disabled{cursor:default;}
+.exp-box{
+  background:rgba(201,168,76,.06);border:1px solid rgba(201,168,76,.2);
+  border-radius:10px;padding:14px 16px;font-size:12.5px;line-height:1.55;
+  color:var(--txt2);margin-bottom:12px;display:none;
+}
+.exp-box.on{display:block;}
+.exp-box strong{color:var(--oro2);}
+.test-controles{
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+  padding:12px 0;border-top:1px solid var(--linea);margin-top:4px;
+}
+
+/* ── Resultado final ── */
+#resultado-wrap{display:none;padding:4px;}
+#resultado-wrap.on{display:block;}
+.result-score{
+  text-align:center;padding:24px;background:var(--pan);
+  border:1px solid var(--linea);border-radius:var(--br);margin-bottom:14px;
+}
+.result-num{font-size:48px;font-weight:800;color:var(--oro);}
+.result-lbl{font-size:13px;color:var(--txt2);margin-top:4px;}
+.badge-ok{color:var(--verde);font-size:17px;font-weight:800;}
+.badge-mal{color:var(--rojo);font-size:17px;font-weight:800;}
+.temas-grid{display:grid;gap:8px;margin-top:12px;}
+
+/* ── Historial ── */
+.hist-item{
+  display:flex;align-items:center;gap:10px;padding:10px 14px;
+  background:rgba(255,255,255,.03);border-radius:9px;border:1px solid var(--linea);
+  margin-bottom:7px;font-size:12px;
+}
+.hist-fecha{color:var(--txt2);flex:1;}
+.hist-score{font-weight:700;color:var(--txt);}
+.hist-badge{font-size:11px;padding:3px 8px;border-radius:99px;font-weight:700;}
+.hist-badge.ok{background:rgba(39,201,125,.15);color:var(--verde);}
+.hist-badge.rep{background:rgba(224,82,82,.12);color:var(--rojo);}
+
+/* ── TTS / voz ── */
+.voz-bar{
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+  padding:10px 14px;background:rgba(201,168,76,.05);border-radius:10px;
+  border:1px solid var(--linea);margin-bottom:12px;
+}
+.voz-bar span{font-size:11px;color:var(--txt2);}
+.voz-toggle{
+  padding:6px 12px;border-radius:8px;border:1px solid var(--linea);
+  background:rgba(255,255,255,.05);color:var(--txt2);cursor:pointer;
+  font-size:11px;font-weight:700;font-family:inherit;transition:all .12s;
+}
+.voz-toggle.on{border-color:var(--oro);color:var(--oro2);background:rgba(201,168,76,.1);}
+.vel-btn{
+  padding:5px 10px;border-radius:7px;border:1px solid var(--linea);
+  background:transparent;color:var(--txt2);cursor:pointer;font-size:11px;
+  font-family:inherit;transition:all .12s;
+}
+.vel-btn.on{border-color:var(--azul);color:var(--azul);}
+
+/* ── Dashboard ── */
+.stat-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;}
+.stat-box{
+  flex:1;min-width:100px;background:var(--pan);border:1px solid var(--linea);
+  border-radius:var(--br);padding:14px;text-align:center;
+}
+.stat-num{font-size:28px;font-weight:800;color:var(--oro);}
+.stat-lbl{font-size:10px;color:var(--txt2);letter-spacing:.5px;margin-top:2px;}
+
+/* ── Checklists ── */
+.check-item{
+  display:flex;align-items:flex-start;gap:10px;padding:11px 0;
+  border-bottom:1px solid rgba(255,255,255,.05);cursor:pointer;
+}
+.check-item:last-child{border-bottom:none;}
+.check-item input[type=checkbox]{
+  width:18px;height:18px;flex-shrink:0;accent-color:var(--verde);margin-top:1px;cursor:pointer;
+}
+.check-item label{font-size:13px;line-height:1.45;cursor:pointer;flex:1;}
+.check-item.done label{color:var(--txt2);text-decoration:line-through;}
+
+/* ── Modo Radio ── */
+.radio-box{
+  background:rgba(74,144,217,.08);border:1px solid rgba(74,144,217,.25);
+  border-radius:var(--br);padding:16px;text-align:center;
+  margin-bottom:14px;display:none;
+}
+.radio-box.on{display:block;}
+.radio-idx{font-size:28px;font-weight:800;color:var(--azul);}
+.radio-txt{font-size:13px;color:var(--txt2);margin-top:6px;line-height:1.5;}
+.radio-txt b{color:var(--txt);}
+
+/* ── Mic activo ── */
+.mic-pulse{
+  display:inline-block;width:10px;height:10px;background:var(--rojo);
+  border-radius:50%;animation:pulse .8s infinite;
+}
+@keyframes pulse{0%,100%{transform:scale(1);opacity:1;}50%{transform:scale(1.5);opacity:.5;}}
+
+/* ── Tabs internas de módulos ── */
+.mod-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;}
+.mod-tab{
+  padding:8px 14px;border-radius:8px;border:1px solid var(--linea);
+  background:transparent;color:var(--txt2);cursor:pointer;font-size:11px;font-weight:600;
+  font-family:inherit;transition:all .12s;
+}
+.mod-tab:hover{border-color:var(--oro);color:var(--txt);}
+.mod-tab.on{background:rgba(201,168,76,.12);border-color:var(--oro);color:var(--oro2);}
+
+/* ── Modo Fallos / tema ── */
+.tema-sel{
+  padding:8px 12px;border-radius:8px;border:1px solid var(--linea);
+  background:var(--pan);color:var(--txt);font-size:12px;font-family:inherit;
+  cursor:pointer;margin-right:6px;
+}
+
+/* ── Misc ── */
+.sep{height:1px;background:var(--linea);margin:14px 0;}
+.txt2{color:var(--txt2);}
+.small{font-size:11px;}
+.mt8{margin-top:8px;}
+.hidden{display:none!important;}
+@media(max-width:560px){
+  .screen{padding:10px;}
+  .pregunta-txt{font-size:14px;}
+  .btn{padding:9px 14px;font-size:12px;}
+}
+</style>
+</head>
+<body>
+
+<!-- ════ TABS NAV ════ -->
+<nav class="nav-tabs" id="navTabs">
+  <button class="ntab on" onclick="showScreen('inicio')" data-tab="inicio">🏠 Inicio</button>
+  <button class="ntab" onclick="showScreen('ccse')" data-tab="ccse">📜 CCSE</button>
+  <button class="ntab" onclick="showScreen('carnetb')" data-tab="carnetb">🚗 Carnet B</button>
+  <button class="ntab" onclick="showScreen('carneta')" data-tab="carneta">🏍️ A / AM</button>
+  <button class="ntab" onclick="showScreen('docs')" data-tab="docs">📋 Docs</button>
+</nav>
+
+<!-- ════ SCREEN: INICIO / DASHBOARD ════ -->
+<div class="screen on" id="sc-inicio">
+
+  <div class="stat-row" id="statRow">
+    <div class="stat-box"><div class="stat-num" id="dashRacha">0</div><div class="stat-lbl">🔥 Racha días</div></div>
+    <div class="stat-box"><div class="stat-num" id="dashCcse">0%</div><div class="stat-lbl">📜 CCSE</div></div>
+    <div class="stat-box"><div class="stat-num" id="dashB">0%</div><div class="stat-lbl">🚗 Carnet B</div></div>
+    <div class="stat-box"><div class="stat-num" id="dashA">0%</div><div class="stat-lbl">🏍️ A/AM</div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">⏱ Cuenta regresiva</div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;">
+      <div>
+        <div style="font-size:11px;color:var(--txt2);margin-bottom:5px;">Fecha examen CCSE</div>
+        <input type="date" id="fechaCcse" class="tema-sel" onchange="guardarFechas()"/>
+        <span id="diasCcse" style="font-size:12px;color:var(--oro);margin-left:8px;"></span>
+      </div>
+      <div>
+        <div style="font-size:11px;color:var(--txt2);margin-bottom:5px;">Fecha examen DGT</div>
+        <input type="date" id="fechaDgt" class="tema-sel" onchange="guardarFechas()"/>
+        <span id="diasDgt" style="font-size:12px;color:var(--oro);margin-left:8px;"></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">⚡ Sesión rápida mixta (15 preguntas)</div>
+    <button class="btn btn-oro" onclick="iniciarSesionRapida()">▶ Empezar sesión rápida</button>
+  </div>
+
+  <div class="card">
+    <div class="card-title">📋 Últimas sesiones</div>
+    <div id="historialGlobal"><p class="txt2 small">Aún no has hecho ningún test.</p></div>
+  </div>
+
+  <div style="padding:16px 0 8px 0;">
+    <div class="voz-bar" id="vozBar">
+      <span>🔊 Audio:</span>
+      <button class="voz-toggle on" id="ttsToggle" onclick="toggleTTS()">ON</button>
+      <button class="vel-btn on" onclick="setVel(0.7)" data-vel="0.7">🐢 0.7x</button>
+      <button class="vel-btn" onclick="setVel(1.0)" data-vel="1.0">🚶 1x</button>
+      <button class="vel-btn" onclick="setVel(1.3)" data-vel="1.3">🏃 1.3x</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════ SCREEN: CCSE ════ -->
+<div class="screen" id="sc-ccse">
+  <div class="mod-tabs">
+    <button class="mod-tab on" onclick="setModTab('ccse','test')">📝 Test Oficial</button>
+    <button class="mod-tab" onclick="setModTab('ccse','estudio')">📖 Modo Estudio</button>
+    <button class="mod-tab" onclick="setModTab('ccse','fallos')">🔁 Repasar Fallos</button>
+    <button class="mod-tab" onclick="setModTab('ccse','tema')">🎯 Por Tema</button>
+    <button class="mod-tab" onclick="setModTab('ccse','radio')">📻 Modo Radio</button>
+    <button class="mod-tab" onclick="setModTab('ccse','hist')">📊 Mi Historial</button>
+  </div>
+  <div id="ccse-panel-test">
+    <div class="card">
+      <div class="card-title">📝 Test Oficial CCSE</div>
+      <p class="txt2 small" style="margin-bottom:12px;">25 preguntas aleatorias · mínimo 15 para aprobar · timer 45 min</p>
+      <button class="btn btn-oro" onclick="iniciarTest('ccse','oficial')">▶ Iniciar simulacro</button>
+    </div>
+  </div>
+  <div id="ccse-panel-estudio" class="hidden">
+    <div class="card">
+      <div class="card-title">📖 Modo Estudio — Tarjetas</div>
+      <p class="txt2 small" style="margin-bottom:12px;">Lee la pregunta, piensa la respuesta, haz clic para ver la solución y explicación.</p>
+      <button class="btn btn-azul" onclick="iniciarEstudio('ccse')">▶ Empezar tarjetas CCSE</button>
+    </div>
+  </div>
+  <div id="ccse-panel-fallos" class="hidden">
+    <div class="card">
+      <div class="card-title">🔁 Repasar Fallos</div>
+      <p class="txt2 small" style="margin-bottom:12px;">Solo las preguntas que has fallado al menos una vez.</p>
+      <button class="btn btn-rojo" onclick="iniciarTest('ccse','fallos')">▶ Repasar mis fallos</button>
+    </div>
+  </div>
+  <div id="ccse-panel-tema" class="hidden">
+    <div class="card">
+      <div class="card-title">🎯 Estudiar por Tema</div>
+      <select class="tema-sel" id="temaCcse">
+        <option value="">— Elige tema —</option>
+      </select>
+      <button class="btn btn-azul btn-sm" style="margin-top:10px;" onclick="iniciarTest('ccse','tema')">▶ Iniciar</button>
+    </div>
+  </div>
+  <div id="ccse-panel-radio" class="hidden">
+    <div class="card">
+      <div class="card-title">📻 Modo Radio</div>
+      <p class="txt2 small" style="margin-bottom:12px;">Auto-reproduce: pregunta → pausa → respuesta → siguiente. Sin tocar pantalla.</p>
+      <div class="radio-box" id="radioBoxCcse">
+        <div class="radio-idx" id="radioIdxCcse">—</div>
+        <div class="radio-txt" id="radioTxtCcse">Iniciando…</div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-azul" id="radioIniciarCcse" onclick="iniciarRadio('ccse')">▶ Iniciar Radio</button>
+        <button class="btn btn-gris" id="radioPararCcse" onclick="pararRadio()" style="display:none">⏹ Parar</button>
+      </div>
+    </div>
+  </div>
+  <div id="ccse-panel-hist" class="hidden">
+    <div class="card">
+      <div class="card-title">📊 Mi historial — CCSE</div>
+      <div id="histCcse"><p class="txt2 small">Aún no hay resultados.</p></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════ SCREEN: CARNET B ════ -->
+<div class="screen" id="sc-carnetb">
+  <div class="mod-tabs">
+    <button class="mod-tab on" onclick="setModTab('b','test')">📝 Test Oficial</button>
+    <button class="mod-tab" onclick="setModTab('b','estudio')">📖 Modo Estudio</button>
+    <button class="mod-tab" onclick="setModTab('b','fallos')">🔁 Repasar Fallos</button>
+    <button class="mod-tab" onclick="setModTab('b','tema')">🎯 Por Tema</button>
+    <button class="mod-tab" onclick="setModTab('b','radio')">📻 Modo Radio</button>
+    <button class="mod-tab" onclick="setModTab('b','hist')">📊 Mi Historial</button>
+  </div>
+  <div id="b-panel-test">
+    <div class="card">
+      <div class="card-title">📝 Test Oficial Carnet B</div>
+      <p class="txt2 small" style="margin-bottom:12px;">30 preguntas aleatorias · máximo 3 fallos permitidos · timer 30 min</p>
+      <button class="btn btn-oro" onclick="iniciarTest('b','oficial')">▶ Iniciar simulacro B</button>
+    </div>
+  </div>
+  <div id="b-panel-estudio" class="hidden">
+    <div class="card">
+      <div class="card-title">📖 Modo Estudio — Tarjetas Carnet B</div>
+      <button class="btn btn-azul" onclick="iniciarEstudio('b')">▶ Empezar tarjetas B</button>
+    </div>
+  </div>
+  <div id="b-panel-fallos" class="hidden">
+    <div class="card">
+      <div class="card-title">🔁 Repasar Fallos — Carnet B</div>
+      <button class="btn btn-rojo" onclick="iniciarTest('b','fallos')">▶ Repasar mis fallos</button>
+    </div>
+  </div>
+  <div id="b-panel-tema" class="hidden">
+    <div class="card">
+      <div class="card-title">🎯 Estudiar por Tema — Carnet B</div>
+      <select class="tema-sel" id="temaB">
+        <option value="">— Elige tema —</option>
+      </select>
+      <button class="btn btn-azul btn-sm" style="margin-top:10px;" onclick="iniciarTest('b','tema')">▶ Iniciar</button>
+    </div>
+  </div>
+  <div id="b-panel-radio" class="hidden">
+    <div class="card">
+      <div class="card-title">📻 Modo Radio — Carnet B</div>
+      <div class="radio-box" id="radioBoxB">
+        <div class="radio-idx" id="radioIdxB">—</div>
+        <div class="radio-txt" id="radioTxtB">Iniciando…</div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-azul" id="radioIniciarB" onclick="iniciarRadio('b')">▶ Iniciar Radio</button>
+        <button class="btn btn-gris" id="radioPararB" onclick="pararRadio()" style="display:none">⏹ Parar</button>
+      </div>
+    </div>
+  </div>
+  <div id="b-panel-hist" class="hidden">
+    <div class="card">
+      <div class="card-title">📊 Mi historial — Carnet B</div>
+      <div id="histB"><p class="txt2 small">Aún no hay resultados.</p></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════ SCREEN: CARNET A/AM ════ -->
+<div class="screen" id="sc-carneta">
+  <div class="mod-tabs">
+    <button class="mod-tab on" onclick="setModTab('a','test')">📝 Test A</button>
+    <button class="mod-tab" onclick="setModTab('a','am')">🛵 Test AM</button>
+    <button class="mod-tab" onclick="setModTab('a','estudio')">📖 Modo Estudio</button>
+    <button class="mod-tab" onclick="setModTab('a','fallos')">🔁 Repasar Fallos</button>
+    <button class="mod-tab" onclick="setModTab('a','tema')">🎯 Por Tema</button>
+    <button class="mod-tab" onclick="setModTab('a','radio')">📻 Modo Radio</button>
+    <button class="mod-tab" onclick="setModTab('a','hist')">📊 Mi Historial</button>
+  </div>
+  <div id="a-panel-test">
+    <div class="card">
+      <div class="card-title">📝 Test Oficial Carnet A</div>
+      <p class="txt2 small" style="margin-bottom:12px;">30 preguntas aleatorias · máximo 3 fallos permitidos</p>
+      <button class="btn btn-oro" onclick="iniciarTest('a','oficial')">▶ Iniciar simulacro A</button>
+    </div>
+  </div>
+  <div id="a-panel-am" class="hidden">
+    <div class="card">
+      <div class="card-title">🛵 Test Carnet AM (Ciclomotor)</div>
+      <p class="txt2 small" style="margin-bottom:12px;">20 preguntas específicas para AM</p>
+      <button class="btn btn-oro" onclick="iniciarTest('am','oficial')">▶ Iniciar simulacro AM</button>
+    </div>
+  </div>
+  <div id="a-panel-estudio" class="hidden">
+    <div class="card">
+      <div class="card-title">📖 Modo Estudio — Tarjetas Carnet A</div>
+      <button class="btn btn-azul" onclick="iniciarEstudio('a')">▶ Empezar tarjetas A</button>
+    </div>
+  </div>
+  <div id="a-panel-fallos" class="hidden">
+    <div class="card">
+      <div class="card-title">🔁 Repasar Fallos — Carnet A</div>
+      <button class="btn btn-rojo" onclick="iniciarTest('a','fallos')">▶ Repasar mis fallos A</button>
+    </div>
+  </div>
+  <div id="a-panel-tema" class="hidden">
+    <div class="card">
+      <div class="card-title">🎯 Estudiar por Tema — Carnet A</div>
+      <select class="tema-sel" id="temaA">
+        <option value="">— Elige tema —</option>
+      </select>
+      <button class="btn btn-azul btn-sm" style="margin-top:10px;" onclick="iniciarTest('a','tema')">▶ Iniciar</button>
+    </div>
+  </div>
+  <div id="a-panel-radio" class="hidden">
+    <div class="card">
+      <div class="card-title">📻 Modo Radio — Carnet A</div>
+      <div class="radio-box" id="radioBoxA">
+        <div class="radio-idx" id="radioIdxA">—</div>
+        <div class="radio-txt" id="radioTxtA">Iniciando…</div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-azul" id="radioIniciarA" onclick="iniciarRadio('a')">▶ Iniciar Radio</button>
+        <button class="btn btn-gris" id="radioPararA" onclick="pararRadio()" style="display:none">⏹ Parar</button>
+      </div>
+    </div>
+  </div>
+  <div id="a-panel-hist" class="hidden">
+    <div class="card">
+      <div class="card-title">📊 Mi historial — Carnet A</div>
+      <div id="histA"><p class="txt2 small">Aún no hay resultados.</p></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════ SCREEN: DOCS ════ -->
+<div class="screen" id="sc-docs">
+  <div class="card">
+    <div class="card-title">📄 Recaudos — Nacionalidad Española</div>
+    <div id="checkNac" class="check-list"></div>
+  </div>
+  <div class="card">
+    <div class="card-title">🚗 Recaudos — Carnet de Conducir B</div>
+    <div id="checkB" class="check-list"></div>
+  </div>
+  <div class="card">
+    <div class="card-title">🏍️ Recaudos — Carnet A / AM</div>
+    <div id="checkA" class="check-list"></div>
+  </div>
+  <div class="card">
+    <div class="card-title">📞 Contactos útiles</div>
+    <div style="font-size:12.5px;line-height:2;color:var(--txt2);">
+      <div>🏛 Instituto Cervantes — <b style="color:var(--txt)">examen CCSE</b></div>
+      <div>🚦 Jefatura Provincial de Tráfico — <b style="color:var(--txt)">DGT / autoescuela</b></div>
+      <div>🏢 Extranjería / Oficina Consular — <b style="color:var(--txt)">solicitud nacionalidad</b></div>
+      <div>⚖️ Ministerio de Justicia — <b style="color:var(--txt)">antecedentes penales España</b></div>
+      <div>📋 Sede Electrónica Justicia — <a href="https://sede.mjusticia.gob.es" target="_blank" rel="noopener" style="color:var(--azul)">sede.mjusticia.gob.es</a></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════ MOTOR DE TEST (overlay dentro de cada módulo) ════ -->
+<div id="test-wrap" class="screen on hidden" style="padding:0;">
+  <div class="test-header">
+    <span>Pregunta <b id="tqActual">1</b> de <b id="tqTotal">25</b></span>
+    <span class="timer" id="timerDisplay">45:00</span>
+    <button class="btn btn-gris btn-sm" onclick="abandonarTest()">✕ Salir</button>
+  </div>
+  <div class="pregunta-box">
+    <div class="pregunta-num" id="tqMod">CCSE · Constitución</div>
+    <div class="pregunta-txt" id="tqTexto">Cargando pregunta…</div>
+    <div class="opciones" id="tqOpciones"></div>
+  </div>
+  <div class="exp-box" id="expBox"></div>
+  <div class="voz-bar" style="margin-bottom:10px;" id="ttsBarTest">
+    <span>🔊</span>
+    <button class="voz-toggle on" id="ttsToggleTest" onclick="toggleTTS()">ON</button>
+    <button class="vel-btn on" onclick="setVel(0.7)" data-vel="0.7">🐢</button>
+    <button class="vel-btn" onclick="setVel(1.0)" data-vel="1.0">🚶</button>
+    <button class="vel-btn" onclick="setVel(1.3)" data-vel="1.3">🏃</button>
+    <button class="btn btn-gris btn-sm" onclick="leerPregunta()">🔊 Leer pregunta</button>
+    <button class="btn btn-gris btn-sm" id="btnMic" onclick="activarMic()">🎙️ Dictar</button>
+    <span id="micStatus" style="font-size:11px;color:var(--txt2);"></span>
+  </div>
+  <div class="test-controles" id="tControles">
+    <button class="btn btn-azul" id="btnSiguiente" onclick="siguientePregunta()" style="display:none">Siguiente →</button>
+  </div>
+</div>
+
+<!-- ════ RESULTADO FINAL ════ -->
+<div id="resultado-wrap" class="screen on hidden" style="padding:16px;">
+  <div class="result-score">
+    <div class="result-num" id="rScore">—</div>
+    <div class="result-lbl" id="rTotal">de 25 preguntas</div>
+    <div style="margin-top:10px;" id="rBadge"></div>
+  </div>
+  <div class="card">
+    <div class="card-title">📊 Rendimiento por tema</div>
+    <div id="rTemas" class="temas-grid"></div>
+  </div>
+  <div class="card">
+    <div class="card-title">📋 Preguntas falladas</div>
+    <div id="rFallos" style="font-size:12.5px;line-height:1.6;"></div>
+  </div>
+  <div class="btn-row" style="margin-top:4px;">
+    <button class="btn btn-oro" onclick="repetirTest()">🔁 Repetir test</button>
+    <button class="btn btn-gris" onclick="volverModulo()">← Volver</button>
+  </div>
+</div>
+
+<!-- ════ MODO ESTUDIO (tarjetas) ════ -->
+<div id="estudio-wrap" class="screen on hidden" style="padding:16px;">
+  <div class="test-header" style="border-radius:var(--br) var(--br) 0 0;border-bottom:none;">
+    <span>Tarjeta <b id="eqActual">1</b> de <b id="eqTotal">120</b></span>
+    <button class="btn btn-gris btn-sm" onclick="abandonarEstudio()">✕ Salir</button>
+  </div>
+  <div class="pregunta-box" id="estudioBox" style="border-radius:0 0 var(--br) var(--br);">
+    <div class="pregunta-num" id="eqMod">CCSE</div>
+    <div class="pregunta-txt" id="eqTexto">Cargando…</div>
+    <div id="eqRespOculta" style="display:none;">
+      <div class="sep"></div>
+      <div style="font-size:13px;color:var(--verde);font-weight:700;margin-bottom:6px;" id="eqRespTxt"></div>
+      <div class="exp-box on" id="eqExp" style="margin-bottom:0;"></div>
+    </div>
+  </div>
+  <div class="btn-row" style="margin-top:12px;" id="estudControles">
+    <button class="btn btn-azul" id="btnVerResp" onclick="verRespuesta()">👁 Ver respuesta</button>
+    <button class="btn btn-verde" id="btnSigEstud" onclick="siguienteEstudio()" style="display:none">Siguiente →</button>
+    <button class="btn btn-gris btn-sm" onclick="leerPreguntaEstudio()">🔊 Leer</button>
+  </div>
+</div>
+
+<script>
+/* ════════════════════════════════════════════════════════
+   FUTURO: si window.MODO_PUBLICO === true (enviado por la
+   página de servicios), mostrar solo demo 5 preguntas sin
+   guardar progreso. Por ahora siempre false → modo privado.
+   ════════════════════════════════════════════════════════ */
+const MODO_PUBLICO = false;
+
+/* ── Config Firebase (mismo proyecto que centro_admin.html) ── */
+const FB_CFG = {
+  apiKey:"AIzaSyCcvwC7NYFgXl74YTF8ouzu32SFwB559dw",
+  authDomain:"aprendisajefatima.firebaseapp.com",
+  projectId:"aprendisajefatima",
+  storageBucket:"aprendisajefatima.firebasestorage.app",
+  messagingSenderId:"744176967394",
+  appId:"1:744176967394:web:1db2edfd2498ddbaa7c8bb"
+};
+
+/* ── Estado global ── */
+let UID = null;
+let PROG = { ccse:{respondidas:{},tests:[],racha:0,ultimo:null},
+             dgt_b:{respondidas:{},tests:[],racha:0,ultimo:null},
+             dgt_a:{respondidas:{},tests:[],racha:0,ultimo:null},
+             fechas_examen:{ccse:null,dgt:null},
+             docs:{} };
+
+/* ── TTS ── */
+let TTS_ON = true;
+let TTS_VEL = 0.7;
+function getSpanishVoice(){
+  const v = window.speechSynthesis ? window.speechSynthesis.getVoices() : [];
+  return v.find(x=>x.name.toLowerCase().includes('google')&&x.lang==='es-ES')
+      || v.find(x=>x.lang==='es-ES')
+      || v.find(x=>x.lang&&x.lang.startsWith('es')) || null;
+}
+function speakText(txt, onEnd){
+  if(!TTS_ON||!window.speechSynthesis){if(onEnd)onEnd();return;}
+  window.speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(txt.replace(/<[^>]+>/g,'').replace(/&nbsp;/g,' '));
+  u.lang='es-ES'; u.rate=TTS_VEL; u.pitch=1.0; u.volume=1.0;
+  const v = getSpanishVoice(); if(v) u.voice=v;
+  if(onEnd) u.onend = onEnd;
+  window.speechSynthesis.speak(u);
+}
+function toggleTTS(){
+  TTS_ON = !TTS_ON;
+  if(!TTS_ON && window.speechSynthesis) window.speechSynthesis.cancel();
+  ['ttsToggle','ttsToggleTest'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el){ el.textContent = TTS_ON?'ON':'OFF'; el.className = 'voz-toggle'+(TTS_ON?' on':''); }
+  });
+}
+function setVel(v){
+  TTS_VEL = v;
+  document.querySelectorAll('.vel-btn').forEach(b=>{
+    b.classList.toggle('on', parseFloat(b.dataset.vel)===v);
+  });
+}
+if(window.speechSynthesis) window.speechSynthesis.onvoiceschanged = ()=>{};
+
+/* ── STT ── */
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+let recognition = null;
+function activarMic(){
+  if(!SR){alert('Tu navegador no soporta reconocimiento de voz');return;}
+  if(recognition){recognition.abort();recognition=null;actualizarMicStatus('');return;}
+  recognition = new SR();
+  recognition.lang='es-ES'; recognition.interimResults=false; recognition.maxAlternatives=1;
+  recognition.onstart = ()=>actualizarMicStatus('<span class="mic-pulse"></span> Escuchando…');
+  recognition.onend = ()=>{ recognition=null; actualizarMicStatus(''); };
+  recognition.onerror = ()=>{ recognition=null; actualizarMicStatus(''); };
+  recognition.onresult = e=>{
+    const txt = e.results[0][0].transcript.toLowerCase().trim();
+    const accion = interpretarVoz(txt);
+    if(accion===null) return;
+    if(typeof accion==='number') seleccionarOpcionVoz(accion);
+    else if(accion==='siguiente') siguientePregunta();
+    else if(accion==='repetir') leerPregunta();
+    recognition=null; actualizarMicStatus('');
+  };
+  recognition.start();
+}
+function interpretarVoz(txt){
+  if(/^(a|opci[oó]n a|primera)$/.test(txt)) return 0;
+  if(/^(b|opci[oó]n b|segunda)$/.test(txt)) return 1;
+  if(/^(c|opci[oó]n c|tercera)$/.test(txt)) return 2;
+  if(/^(d|opci[oó]n d|cuarta)$/.test(txt)) return 3;
+  if(/siguiente|avanzar/.test(txt)) return 'siguiente';
+  if(/repetir|leer/.test(txt)) return 'repetir';
+  return null;
+}
+function actualizarMicStatus(html){
+  const el = document.getElementById('micStatus'); if(el) el.innerHTML=html;
+}
+function seleccionarOpcionVoz(idx){
+  const btns = document.querySelectorAll('.opcion');
+  if(btns[idx] && !btns[idx].disabled) btns[idx].click();
+}
+
+/* ── Navegación principal ── */
+const SCREENS = ['inicio','ccse','carnetb','carneta','docs'];
+function showScreen(id){
+  SCREENS.forEach(s=>{
+    document.getElementById('sc-'+s).classList.toggle('on', s===id);
+  });
+  document.querySelectorAll('.ntab').forEach(b=>{
+    b.classList.toggle('on', b.dataset.tab===id);
+  });
+  if(id==='inicio') renderDashboard();
+}
+
+/* ── Tabs internas de módulos ── */
+const MOD_PANELS = {
+  ccse:['test','estudio','fallos','tema','radio','hist'],
+  b:['test','estudio','fallos','tema','radio','hist'],
+  a:['test','am','estudio','fallos','tema','radio','hist']
+};
+function setModTab(mod, panel){
+  (MOD_PANELS[mod]||[]).forEach(p=>{
+    const el = document.getElementById(mod+'-panel-'+p);
+    if(el) el.classList.toggle('hidden', p!==panel);
+  });
+  const scId = mod==='b'?'sc-carnetb': mod==='a'?'sc-carneta':'sc-'+mod;
+  const sc = document.getElementById(scId);
+  if(sc) sc.querySelectorAll('.mod-tab').forEach((b,i)=>{
+    b.classList.toggle('on', (MOD_PANELS[mod]||[])[i]===panel);
+  });
+  if(mod==='ccse'&&panel==='hist') renderHistorial('ccse');
+  if(mod==='b'&&panel==='hist') renderHistorial('b');
+  if(mod==='a'&&panel==='hist') renderHistorial('a');
+}
+
+/* ── Estado del test activo ── */
+let TEST = {
+  modulo: null,          // 'ccse'|'b'|'a'|'am'
+  preguntas: [],
+  actual: 0,
+  respuestas: [],        // {id, correcto, tema}
+  timer: null,
+  segundos: 0,
+  modo: 'oficial',       // 'oficial'|'fallos'|'tema'
+  modoEstudio: false
+};
+
+function modConfig(mod){
+  if(mod==='ccse') return { preguntas: window.PREGUNTAS_CCSE, temas: window.TEMAS_CCSE,
+    total:25, maxFallos:10, timerMin:45, label:'CCSE', progKey:'ccse' };
+  if(mod==='b')    return { preguntas: window.PREGUNTAS_DGT_B, temas: window.TEMAS_DGT_B,
+    total:30, maxFallos:3, timerMin:30, label:'Carnet B', progKey:'dgt_b' };
+  if(mod==='a')    return { preguntas: window.PREGUNTAS_DGT_A, temas: window.TEMAS_DGT_A,
+    total:30, maxFallos:3, timerMin:30, label:'Carnet A', progKey:'dgt_a' };
+  if(mod==='am')   return { preguntas: window.PREGUNTAS_DGT_AM, temas: window.TEMAS_DGT_A,
+    total:20, maxFallos:3, timerMin:25, label:'Carnet AM', progKey:'dgt_a' };
+  return null;
+}
+function progKey(mod){ return modConfig(mod)?.progKey||mod; }
+
+/* ── Iniciar test ── */
+function iniciarTest(mod, modo){
+  const cfg = modConfig(mod); if(!cfg) return;
+  let pool = cfg.preguntas || [];
+  if(modo==='fallos'){
+    const resp = PROG[cfg.progKey]?.respondidas||{};
+    pool = pool.filter(q=>resp[q.id]===0);
+    if(!pool.length){ alert('¡No tienes fallos registrados aún!'); return; }
+  }
+  if(modo==='tema'){
+    const sel = document.getElementById('tema'+cap(mod))?.value||document.getElementById('temaB')?.value;
+    if(!sel){ alert('Elige un tema primero'); return; }
+    pool = pool.filter(q=>q.tema===sel);
+  }
+  const n = Math.min(cfg.total, pool.length);
+  const shuffled = shuffle([...pool]).slice(0, n);
+  TEST.modulo = mod;
+  TEST.preguntas = shuffled;
+  TEST.actual = 0;
+  TEST.respuestas = [];
+  TEST.modo = modo;
+  TEST.modoEstudio = false;
+  TEST.segundos = cfg.timerMin * 60;
+  ocultarTodos();
+  document.getElementById('test-wrap').classList.remove('hidden');
+  document.getElementById('tqTotal').textContent = shuffled.length;
+  iniciarTimer();
+  mostrarPregunta();
+}
+function cap(s){ return s.charAt(0).toUpperCase()+s.slice(1); }
+
+/* ── Mostrar pregunta ── */
+function mostrarPregunta(){
+  const q = TEST.preguntas[TEST.actual];
+  const cfg = modConfig(TEST.modulo);
+  document.getElementById('tqActual').textContent = TEST.actual+1;
+  document.getElementById('tqMod').textContent = (cfg?.label||'')+(q.tema?(' · '+(cfg?.temas[q.tema]||q.tema)):'');
+  document.getElementById('tqTexto').textContent = q.p;
+  const expBox = document.getElementById('expBox');
+  expBox.classList.remove('on'); expBox.innerHTML='';
+  document.getElementById('btnSiguiente').style.display='none';
+  const letras = ['A','B','C','D'];
+  const opc = document.getElementById('tqOpciones');
+  opc.innerHTML = '';
+  q.o.forEach((op,i)=>{
+    const b = document.createElement('button');
+    b.className='opcion';
+    b.innerHTML = `<span class="letra">${letras[i]}</span><span>${op}</span>`;
+    b.onclick = ()=>responder(i);
+    opc.appendChild(b);
+  });
+  if(TTS_ON) speakText('Pregunta '+(TEST.actual+1)+'. '+q.p);
+}
+
+/* ── Responder ── */
+function responder(idx){
+  const q = TEST.preguntas[TEST.actual];
+  const btns = document.querySelectorAll('.opcion');
+  btns.forEach(b=>b.disabled=true);
+  const correcto = idx===q.c;
+  btns[q.c].classList.add('correcta');
+  if(!correcto) btns[idx].classList.add('incorrecta');
+  TEST.respuestas.push({id:q.id, correcto, tema:q.tema, idx});
+  // Actualizar respondidas
+  const pk = progKey(TEST.modulo);
+  if(PROG[pk]){
+    if(PROG[pk].respondidas[q.id]===undefined) PROG[pk].respondidas[q.id]=0;
+    if(correcto) PROG[pk].respondidas[q.id]++;
+    else PROG[pk].respondidas[q.id]=0;
+  }
+  // Mostrar explicación
+  const expBox = document.getElementById('expBox');
+  expBox.innerHTML = '<strong>'+(correcto?'✅ Correcto':'❌ Incorrecto — La respuesta era: '+q.o[q.c])+'</strong>'+(q.exp?('<br><br>'+q.exp):'');
+  expBox.classList.add('on');
+  if(TTS_ON){
+    const feedback = (correcto?'Correcto. ':'Incorrecto. La respuesta correcta es '+q.o[q.c]+'. ')+(q.exp||'');
+    speakText(feedback);
+  }
+  document.getElementById('btnSiguiente').style.display='inline-flex';
+}
+
+/* ── Siguiente pregunta ── */
+function siguientePregunta(){
+  TEST.actual++;
+  if(TEST.actual>=TEST.preguntas.length){ finalizarTest(); return; }
+  mostrarPregunta();
+}
+
+/* ── Timer ── */
+function iniciarTimer(){
+  clearInterval(TEST.timer);
+  TEST.timer = setInterval(()=>{
+    TEST.segundos--;
+    const m = Math.floor(TEST.segundos/60).toString().padStart(2,'0');
+    const s = (TEST.segundos%60).toString().padStart(2,'0');
+    document.getElementById('timerDisplay').textContent = m+':'+s;
+    if(TEST.segundos<=0){ clearInterval(TEST.timer); finalizarTest(); }
+  },1000);
+}
+
+/* ── Finalizar test ── */
+function finalizarTest(){
+  clearInterval(TEST.timer);
+  if(window.speechSynthesis) window.speechSynthesis.cancel();
+  const cfg = modConfig(TEST.modulo);
+  const total = TEST.preguntas.length;
+  const correctas = TEST.respuestas.filter(r=>r.correcto).length;
+  const fallos = total - correctas;
+  let aprobado;
+  if(TEST.modulo==='ccse') aprobado = correctas>=15;
+  else aprobado = fallos<=3;
+  // Calcular por tema
+  const temaStats = {};
+  TEST.preguntas.forEach((q,i)=>{
+    const r = TEST.respuestas[i]; if(!r) return;
+    if(!temaStats[q.tema]) temaStats[q.tema]={ok:0,total:0};
+    temaStats[q.tema].total++;
+    if(r.correcto) temaStats[q.tema].ok++;
+  });
+  const temasPct = {};
+  Object.entries(temaStats).forEach(([t,s])=>temasPct[t]=s.total?Math.round(s.ok/s.total*100):0);
+  // Guardar en historial
+  const pk = progKey(TEST.modulo);
+  const entrada = {fecha:hoy(), score:correctas, total, aprobado, temas:temasPct};
+  if(PROG[pk]){ PROG[pk].tests.unshift(entrada); if(PROG[pk].tests.length>30) PROG[pk].tests=PROG[pk].tests.slice(0,30); }
+  actualizarRacha(pk);
+  guardarProg();
+  // Renderizar resultado
+  ocultarTodos();
+  const rw = document.getElementById('resultado-wrap'); rw.classList.remove('hidden');
+  document.getElementById('rScore').textContent = correctas;
+  document.getElementById('rTotal').textContent = 'de '+total+' preguntas · '+Math.round(correctas/total*100)+'%';
+  document.getElementById('rBadge').innerHTML = aprobado
+    ? '<span class="badge-ok">✅ APROBADO</span>'
+    : '<span class="badge-mal">📚 NECESITAS REPASAR</span>';
+  // Temas
+  const rTemas = document.getElementById('rTemas');
+  rTemas.innerHTML = '';
+  const temas = cfg?.temas||{};
+  Object.entries(temaStats).forEach(([t,s])=>{
+    const pct=Math.round(s.ok/s.total*100);
+    rTemas.innerHTML+=`<div class="barra-wrap"><div class="barra-lbl"><span>${temas[t]||t}</span><b>${s.ok}/${s.total} (${pct}%)</b></div><div class="barra-bg"><div class="barra-fill${pct>=60?' verde':''}" style="width:${pct}%"></div></div></div>`;
+  });
+  // Fallos
+  const rFallos = document.getElementById('rFallos');
+  const fallosList = TEST.respuestas.filter(r=>!r.correcto);
+  if(!fallosList.length){ rFallos.innerHTML='<p class="txt2 small">¡Sin fallos! 🎉</p>'; }
+  else {
+    rFallos.innerHTML = fallosList.map((r,i)=>{
+      const q = TEST.preguntas.find(x=>x.id===r.id);
+      if(!q) return '';
+      return `<div style="margin-bottom:10px;"><b style="color:var(--rojo)">✗</b> ${q.p}<br><span style="color:var(--verde);font-size:12px;">✔ ${q.o[q.c]}</span></div>`;
+    }).join('');
+  }
+  if(TTS_ON) speakText((aprobado?'¡Enhorabuena! Has aprobado con ':'No has aprobado. ') + correctas + ' de ' + total + ' correctas.');
+}
+
+function repetirTest(){ iniciarTest(TEST.modulo, TEST.modo); }
+function volverModulo(){
+  ocultarTodos();
+  const sc = TEST.modulo==='b'?'sc-carnetb': TEST.modulo==='a'||TEST.modulo==='am'?'sc-carneta':'sc-ccse';
+  document.getElementById(sc).classList.add('on');
+}
+function abandonarTest(){ clearInterval(TEST.timer); if(window.speechSynthesis) window.speechSynthesis.cancel(); ocultarTodos(); volverModulo(); }
+
+/* ── Modo Estudio (tarjetas) ── */
+let ESTUD = { preguntas:[], actual:0, modulo:null };
+function iniciarEstudio(mod){
+  const cfg = modConfig(mod==='b'?'b':mod==='a'?'a':'ccse'); if(!cfg) return;
+  ESTUD.preguntas = shuffle([...(cfg.preguntas||[])]);
+  ESTUD.actual = 0;
+  ESTUD.modulo = mod;
+  ocultarTodos();
+  document.getElementById('estudio-wrap').classList.remove('hidden');
+  document.getElementById('eqTotal').textContent = ESTUD.preguntas.length;
+  mostrarTarjeta();
+}
+function mostrarTarjeta(){
+  const q = ESTUD.preguntas[ESTUD.actual];
+  document.getElementById('eqActual').textContent = ESTUD.actual+1;
+  document.getElementById('eqTexto').textContent = q.p;
+  document.getElementById('eqRespOculta').style.display='none';
+  document.getElementById('btnVerResp').style.display='inline-flex';
+  document.getElementById('btnSigEstud').style.display='none';
+  if(TTS_ON) speakText(q.p);
+}
+function verRespuesta(){
+  const q = ESTUD.preguntas[ESTUD.actual];
+  document.getElementById('eqRespTxt').textContent = '✔ '+q.o[q.c];
+  document.getElementById('eqExp').textContent = q.exp||'';
+  document.getElementById('eqRespOculta').style.display='block';
+  document.getElementById('btnVerResp').style.display='none';
+  document.getElementById('btnSigEstud').style.display='inline-flex';
+  if(TTS_ON) speakText('La respuesta es: '+q.o[q.c]+'. '+(q.exp||''));
+}
+function siguienteEstudio(){
+  ESTUD.actual++;
+  if(ESTUD.actual>=ESTUD.preguntas.length){
+    alert('¡Has repasado todas las tarjetas!'); abandonarEstudio(); return;
+  }
+  mostrarTarjeta();
+}
+function leerPreguntaEstudio(){
+  const q = ESTUD.preguntas[ESTUD.actual]; if(!q) return;
+  speakText(q.p);
+}
+function abandonarEstudio(){ ocultarTodos(); volverModulo(); }
+
+/* ── Sesión rápida mixta ── */
+function iniciarSesionRapida(){
+  const pool = [
+    ...shuffle([...(window.PREGUNTAS_CCSE||[])]).slice(0,5),
+    ...shuffle([...(window.PREGUNTAS_DGT_B||[])]).slice(0,5),
+    ...shuffle([...(window.PREGUNTAS_DGT_A||[])]).slice(0,5)
+  ];
+  TEST.modulo = 'ccse';
+  TEST.preguntas = shuffle(pool);
+  TEST.actual = 0;
+  TEST.respuestas = [];
+  TEST.modo = 'mixto';
+  TEST.segundos = 15*60;
+  ocultarTodos();
+  document.getElementById('test-wrap').classList.remove('hidden');
+  document.getElementById('tqTotal').textContent = pool.length;
+  iniciarTimer();
+  mostrarPregunta();
+}
+
+/* ── Modo Radio ── */
+let RADIO = { activo: false, preguntas:[], idx:0, modulo:null, timeouts:[] };
+function iniciarRadio(mod){
+  const cfg = modConfig(mod==='b'?'b':mod==='a'?'a':'ccse'); if(!cfg) return;
+  pararRadio();
+  RADIO.activo=true; RADIO.idx=0; RADIO.modulo=mod;
+  RADIO.preguntas = shuffle([...(cfg.preguntas||[])]);
+  const box = document.getElementById('radioBox'+cap(mod));
+  if(box) box.classList.add('on');
+  const btnP = document.getElementById('radioParar'+cap(mod));
+  if(btnP) btnP.style.display='inline-flex';
+  const btnI = document.getElementById('radioIniciar'+cap(mod));
+  if(btnI) btnI.style.display='none';
+  reproducirRadio();
+}
+function reproducirRadio(){
+  if(!RADIO.activo) return;
+  const q = RADIO.preguntas[RADIO.idx];
+  if(!q){ pararRadio(); return; }
+  const mod = RADIO.modulo;
+  const idxEl = document.getElementById('radioIdx'+cap(mod));
+  const txtEl = document.getElementById('radioTxt'+cap(mod));
+  if(idxEl) idxEl.textContent = (RADIO.idx+1)+'/'+RADIO.preguntas.length;
+  if(txtEl) txtEl.innerHTML = '<b>'+q.p+'</b>';
+  speakText('Pregunta '+(RADIO.idx+1)+'. '+q.p, ()=>{
+    if(!RADIO.activo) return;
+    const t1 = setTimeout(()=>{
+      if(!RADIO.activo) return;
+      if(txtEl) txtEl.innerHTML = '<b>'+q.p+'</b><br><span style="color:var(--verde);">✔ '+q.o[q.c]+'</span>';
+      speakText('La respuesta correcta es: '+q.o[q.c]+'. '+(q.exp||''), ()=>{
+        if(!RADIO.activo) return;
+        const t2 = setTimeout(()=>{
+          if(!RADIO.activo) return;
+          RADIO.idx++;
+          reproducirRadio();
+        }, 3000);
+        RADIO.timeouts.push(t2);
+      });
+    }, 2500);
+    RADIO.timeouts.push(t1);
+  });
+}
+function pararRadio(){
+  RADIO.activo=false;
+  RADIO.timeouts.forEach(t=>clearTimeout(t)); RADIO.timeouts=[];
+  if(window.speechSynthesis) window.speechSynthesis.cancel();
+  ['Ccse','B','A'].forEach(suf=>{
+    const bp = document.getElementById('radioPasar'+suf);
+    const bi = document.getElementById('radioIniciar'+suf);
+    const bp2 = document.getElementById('radioParar'+suf);
+    const box = document.getElementById('radioBox'+suf);
+    if(box) box.classList.remove('on');
+    if(bi) bi.style.display='inline-flex';
+    if(bp2) bp2.style.display='none';
+  });
+}
+
+/* ── Leer pregunta de test ── */
+function leerPregunta(){
+  const q = TEST.preguntas[TEST.actual]; if(!q) return;
+  speakText(q.p);
+}
+
+/* ── Ocultar todos los wrappers ── */
+function ocultarTodos(){
+  ['test-wrap','resultado-wrap','estudio-wrap'].forEach(id=>{
+    document.getElementById(id).classList.add('hidden');
+  });
+  SCREENS.forEach(s=>document.getElementById('sc-'+s).classList.remove('on'));
+}
+
+/* ── Dashboard ── */
+function renderDashboard(){
+  const ccse = PROG.ccse; const b = PROG.dgt_b; const a = PROG.dgt_a;
+  const pctDom = (p, pool) => {
+    if(!pool||!p) return 0;
+    const dom = pool.filter(q=>( p.respondidas[q.id]||0)>=2).length;
+    return pool.length ? Math.round(dom/pool.length*100) : 0;
+  };
+  document.getElementById('dashRacha').textContent = ccse.racha||0;
+  document.getElementById('dashCcse').textContent = pctDom(ccse,window.PREGUNTAS_CCSE)+'%';
+  document.getElementById('dashB').textContent = pctDom(b,window.PREGUNTAS_DGT_B)+'%';
+  document.getElementById('dashA').textContent = pctDom(a,window.PREGUNTAS_DGT_A)+'%';
+  // Historial global
+  const todos = [
+    ...(ccse.tests||[]).map(t=>({...t,mod:'CCSE'})),
+    ...(b.tests||[]).map(t=>({...t,mod:'Carnet B'})),
+    ...(a.tests||[]).map(t=>({...t,mod:'Carnet A'}))
+  ].sort((a,b)=> b.fecha<a.fecha?-1:1).slice(0,10);
+  const histEl = document.getElementById('historialGlobal');
+  if(!todos.length){ histEl.innerHTML='<p class="txt2 small">Aún no has hecho ningún test.</p>'; }
+  else histEl.innerHTML = todos.map(t=>`
+    <div class="hist-item">
+      <span class="hist-fecha">${t.fecha} · ${t.mod}</span>
+      <span class="hist-score">${t.score}/${t.total} (${Math.round(t.score/t.total*100)}%)</span>
+      <span class="hist-badge ${t.aprobado?'ok':'rep'}">${t.aprobado?'✅ Aprobado':'📚 Repasar'}</span>
+    </div>`).join('');
+  // Fechas de examen
+  const fechas = PROG.fechas_examen||{};
+  if(fechas.ccse){ document.getElementById('fechaCcse').value=fechas.ccse; actualizarDias('ccse'); }
+  if(fechas.dgt){  document.getElementById('fechaDgt').value=fechas.dgt;  actualizarDias('dgt');  }
+}
+
+function guardarFechas(){
+  PROG.fechas_examen.ccse = document.getElementById('fechaCcse').value||null;
+  PROG.fechas_examen.dgt  = document.getElementById('fechaDgt').value||null;
+  actualizarDias('ccse'); actualizarDias('dgt');
+  guardarProg();
+}
+function actualizarDias(cual){
+  const val = document.getElementById('fecha'+cap(cual)).value;
+  const el = document.getElementById('dias'+cap(cual));
+  if(!el) return;
+  if(!val){ el.textContent=''; return; }
+  const diff = Math.ceil((new Date(val)-new Date())/(1000*60*60*24));
+  el.textContent = diff>0 ? diff+' días' : diff===0 ? '¡HOY!' : 'Pasado';
+}
+
+/* ── Historial por módulo ── */
+function renderHistorial(mod){
+  const pkMap = {ccse:'ccse',b:'dgt_b',a:'dgt_a'};
+  const pk = pkMap[mod];
+  const tests = (PROG[pk]?.tests)||[];
+  const el = document.getElementById('hist'+cap(mod));
+  if(!el) return;
+  if(!tests.length){ el.innerHTML='<p class="txt2 small">Aún no hay resultados.</p>'; return; }
+  el.innerHTML = tests.slice(0,15).map(t=>`
+    <div class="hist-item">
+      <span class="hist-fecha">${t.fecha}</span>
+      <span class="hist-score">${t.score}/${t.total} (${Math.round(t.score/t.total*100)}%)</span>
+      <span class="hist-badge ${t.aprobado?'ok':'rep'}">${t.aprobado?'✅':'📚'}</span>
+    </div>`).join('');
+}
+
+/* ── Racha de días ── */
+function actualizarRacha(pk){
+  const p = PROG[pk]; if(!p) return;
+  const hoyStr = hoy();
+  if(p.ultimo===hoyStr) return;
+  const ayer = new Date(); ayer.setDate(ayer.getDate()-1);
+  const ayerStr = ayer.toISOString().slice(0,10);
+  if(p.ultimo===ayerStr) p.racha=(p.racha||0)+1;
+  else p.racha=1;
+  p.ultimo=hoyStr;
+}
+
+/* ── Checklists ── */
+const DOCS_NAC = [
+  'Pasaporte en vigor + 2 fotocopias',
+  'NIE / TIE en vigor + 2 fotocopias',
+  'Empadronamiento (máx. 3 meses)',
+  'Partida de nacimiento apostillada + traducción jurada',
+  'Antecedentes penales país de origen (apostillada + traducción)',
+  'Antecedentes penales España (Ministerio de Justicia)',
+  'Modelo 790 Código 026 — Tasa (~102€)',
+  'Certificado CCSE aprobado (Instituto Cervantes)',
+  'Certificado DELE A2 o B1 (si no es de un país hispanohablante)',
+  '2 fotos carné recientes (fondo blanco)',
+  'Certificado de nacimiento de hijos (si aplica)',
+  'Libro de familia (si aplica)'
+];
+const DOCS_B = [
+  'DNI/NIE en vigor',
+  'Tarjeta de empadronamiento (domicilio en España)',
+  'Informe médico (psicofísico apto) de centro autorizado',
+  'Solicitud DGT (formulario en jefatura de tráfico)',
+  'Foto carné reciente (fondo blanco, 32x26 mm)',
+  'Tasa DGT abonada (Modelo 790 código 059)',
+  'Matrícula en autoescuela autorizada',
+  'Aprobado el examen teórico DGT',
+  'Aprobado el examen práctico (circuito + vía pública)'
+];
+const DOCS_A = [
+  'DNI/NIE en vigor',
+  'Ser mayor de 18 años (A) / 16 años (AM)',
+  'Informe médico (psicofísico apto) de centro autorizado',
+  'Solicitud DGT (formulario en jefatura)',
+  'Foto carné reciente',
+  'Tasa DGT abonada',
+  'Matrícula en autoescuela con formación en moto',
+  'Aprobado el examen teórico moto',
+  'Aprobado el examen de maniobrabilidad (circuito)',
+  'Aprobado el examen en vía pública'
+];
+function buildChecklist(containerId, items, storageKey){
+  const el = document.getElementById(containerId); if(!el) return;
+  let saved = {};
+  try{ saved = JSON.parse(localStorage.getItem('fc_docs_'+storageKey)||'{}'); }catch(_){}
+  el.innerHTML = items.map((it,i)=>{
+    const k = storageKey+'_'+i;
+    const chk = saved[k]?'checked':'';
+    return `<div class="check-item${saved[k]?' done':''}" id="ci_${k}">
+      <input type="checkbox" id="cb_${k}" ${chk} onchange="toggleDoc('${k}','${storageKey}',this,${i})"/>
+      <label for="cb_${k}">${it}</label></div>`;
+  }).join('');
+}
+function toggleDoc(k, storageKey, cb, idx){
+  let saved={};
+  try{ saved=JSON.parse(localStorage.getItem('fc_docs_'+storageKey)||'{}'); }catch(_){}
+  saved[k]=cb.checked;
+  try{ localStorage.setItem('fc_docs_'+storageKey, JSON.stringify(saved)); }catch(_){}
+  const ci = document.getElementById('ci_'+k);
+  if(ci) ci.className='check-item'+(cb.checked?' done':'');
+}
+function initChecklists(){
+  buildChecklist('checkNac', DOCS_NAC, 'nac');
+  buildChecklist('checkB',   DOCS_B,   'b');
+  buildChecklist('checkA',   DOCS_A,   'a');
+}
+
+/* ── Select de temas ── */
+function initTemaSelects(){
+  const fill = (id, temas)=>{
+    const el=document.getElementById(id); if(!el) return;
+    Object.entries(temas||{}).forEach(([k,v])=>{
+      const o=document.createElement('option'); o.value=k; o.textContent=v; el.appendChild(o);
+    });
+  };
+  fill('temaCcse', window.TEMAS_CCSE||{});
+  fill('temaB', window.TEMAS_DGT_B||{});
+  fill('temaA', window.TEMAS_DGT_A||{});
+}
+
+/* ── Persistencia local ── */
+function guardarProg(){
+  if(!UID) return;
+  try{ localStorage.setItem('fc_tramites_'+UID, JSON.stringify(PROG)); }catch(_){}
+  sincronizarFirebase();
+}
+function cargarProg(){
+  if(!UID) return;
+  try{
+    const g=localStorage.getItem('fc_tramites_'+UID);
+    if(g) PROG=Object.assign(PROG,JSON.parse(g));
+  }catch(_){}
+}
+
+/* ── Firebase ── */
+let DB=null, AUTH_USER=null;
+function initFirebase(){
+  function loadScript(src){return new Promise(r=>{const s=document.createElement('script');s.src=src;s.onload=r;s.onerror=r;document.head.appendChild(s);});}
+  (async()=>{
+    try{
+      await loadScript('https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js');
+      await loadScript('https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js');
+      await loadScript('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js');
+      if(!window.firebase) return;
+      if(!firebase.apps.length) firebase.initializeApp(FB_CFG);
+      DB = firebase.firestore();
+      firebase.auth().onAuthStateChanged(u=>{
+        AUTH_USER=u;
+        UID = u?u.uid:null;
+        if(u){ cargarProg(); cargarProgFirebase(); }
+        renderDashboard();
+      });
+    }catch(e){ console.warn('[Trámites] Firebase no disponible:', e); }
+  })();
+}
+async function cargarProgFirebase(){
+  if(!DB||!UID) return;
+  try{
+    const snap = await DB.collection('usuarios').doc(UID).get();
+    if(snap.exists && snap.data().tramites){
+      const fbProg = snap.data().tramites;
+      PROG = Object.assign(PROG, fbProg);
+      try{ localStorage.setItem('fc_tramites_'+UID, JSON.stringify(PROG)); }catch(_){}
+      renderDashboard();
+    }
+  }catch(e){ console.warn('[Trámites] Lectura Firebase:', e); }
+}
+function sincronizarFirebase(){
+  if(!DB||!UID) return;
+  DB.collection('usuarios').doc(UID).set({tramites: PROG},{merge:true})
+    .catch(e=>console.warn('[Trámites] Escritura Firebase:', e));
+}
+
+/* ── Utilidades ── */
+function hoy(){ return new Date().toISOString().slice(0,10); }
+function shuffle(arr){
+  for(let i=arr.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [arr[i],arr[j]]=[arr[j],arr[i]];
+  }
+  return arr;
+}
+
+/* ── Init ── */
+document.addEventListener('DOMContentLoaded', ()=>{
+  initTemaSelects();
+  initChecklists();
+  initFirebase();
+  renderDashboard();
+  // Voces disponibles
+  if(window.speechSynthesis) window.speechSynthesis.getVoices();
+});
+</script>
+</body>
+</html>
