@@ -541,6 +541,15 @@ input::placeholder,textarea::placeholder{color:rgba(255,255,255,0.3);}
           </div>
         </sc-if>
 
+        <!-- ░░ TAB ESTUDIO TRÁMITES ░░ -->
+        <sc-if value="{{ tabEstudio }}" hint-placeholder-val="{{ false }}">
+          <div style="margin:-20px -18px 0;">
+            <iframe src="tramites_espana.html"
+              allow="microphone; clipboard-read; clipboard-write"
+              style="width:100%;height:calc(100vh - 106px);border:0;display:block;background:#070a10;border-radius:0 0 12px 12px;"></iframe>
+          </div>
+        </sc-if>
+
         <!-- ░░ TAB LOGO & APP ░░ -->
         <sc-if value="{{ tabLogo }}" hint-placeholder-val="{{ false }}">
           <p class="adm-lbl">Tu logotipo</p>
@@ -912,7 +921,7 @@ class Component extends DCLogic {
 
   renderVals(){
     const s = this.state;
-    const tabNames = ['Citas','Bloques','Agenda','Visitas','Trabajos','Categorías','Vídeos','Servicios','Reseñas','Portadas','Logo & App'];
+    const tabNames = ['Citas','Bloques','Agenda','Visitas','Trabajos','Categorías','Vídeos','Servicios','Reseñas','Portadas','Logo & App','🇪🇸 Estudio'];
     const tabs = tabNames.map(t => {
       const active = s.tab === t;
       return { label:t, bg:active?'#C5A059':'transparent', fg:active?'#0a0a0a':'#e8c97a', bd:active?'#C5A059':'rgba(197,160,89,0.3)', onClick:() => this.setTab(t) };
@@ -1038,6 +1047,7 @@ class Component extends DCLogic {
       tabs,
       tabTrabajos: s.tab==='Trabajos', tabCats: s.tab==='Categorías', tabVideos: s.tab==='Vídeos',
       tabServicios: s.tab==='Servicios', tabResenas: s.tab==='Reseñas', tabPortadas: s.tab==='Portadas', tabLogo: s.tab==='Logo & App',
+      tabEstudio: s.tab==='🇪🇸 Estudio',
       // Nube (Citas / Bloques / Agenda / Visitas)
       needCloudLogin: (['Citas','Bloques','Agenda','Visitas'].indexOf(s.tab) >= 0) && !s.fbUser,
       cloudBar: (['Citas','Bloques','Agenda','Visitas'].indexOf(s.tab) >= 0) && !!s.fbUser,
