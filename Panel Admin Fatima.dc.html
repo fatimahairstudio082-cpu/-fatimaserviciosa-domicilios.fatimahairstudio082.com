@@ -293,6 +293,23 @@ input::placeholder,textarea::placeholder{color:rgba(255,255,255,0.3);}
             <p class="adm-lbl">Vídeo (opcional) · YouTube o Drive</p>
             <input id="w-video" type="text" placeholder="Pega el link del vídeo" class="adm-in" style="margin-bottom:18px;">
 
+            <p class="adm-lbl">✨ Animación de la tarjeta (se ve como vídeo, sin descargar)</p>
+            <select id="w-anim" class="adm-in" style="margin-bottom:14px;">
+              <option value="auto">✨ Automática (recomendada)</option>
+              <option value="antesdespues">🔁 Antes / Después en bucle</option>
+              <option value="kenburns">🎥 Acercamiento (Ken Burns)</option>
+              <option value="3d">🧊 Giro 3D</option>
+              <option value="zoom">🔍 Zoom suave</option>
+              <option value="ninguna">— Sin animación</option>
+            </select>
+
+            <p class="adm-lbl">🔊 Audio gratis al abrir la tarjeta</p>
+            <select id="w-audio" class="adm-in" style="margin-bottom:18px;">
+              <option value="ninguno">🔇 Sin audio</option>
+              <option value="voz">🗣️ Voz que lee el título (gratis)</option>
+              <option value="brillo">✨ Sonido suave</option>
+            </select>
+
             <div style="display:flex;gap:9px;">
               <button onClick="{{ onSaveWork }}" style="flex:1;background:#C5A059;color:#000;border:none;padding:13px;border-radius:11px;cursor:pointer;font-weight:700;font-size:0.85rem;font-family:'Montserrat',sans-serif;">{{ workSaveLabel }}</button>
               <sc-if value="{{ editingWork }}" hint-placeholder-val="{{ false }}">
@@ -793,20 +810,57 @@ class Component extends DCLogic {
     this.setState({tab:'Trabajos', draft:{id:w.id, cat:w.cat||'', antes:w.antes||'', despues:w.despues||''}}, () => {
       const t = document.getElementById('w-title'); if (t) t.value = w.title||'';
       const v = document.getElementById('w-video'); if (v) v.value = w.video||'';
+      const an = document.getElementById('w-anim'); if (an) an.value = w.anim||'auto';
+      const au = document.getElementById('w-audio'); if (au) au.value = w.audio||'ninguno';
       try { window.scrollTo({top:0, behavior:'smooth'}); } catch(e){}
     });
   }
   cancelWork(){ this.setState({draft:{id:null, cat:'', antes:'', despues:''}}, () => this._clearWorkInputs()); }
-  _clearWorkInputs(){ ['w-title','w-video','w-drive-antes','w-drive-despues'].forEach(id => { const e = document.getElementById(id); if (e) e.value=''; }); }
+  _clearWorkInputs(){
+    ['w-title','w-video','w-drive-antes','w-drive-despues'].forEach(id => { const e = document.getElementById(id); if (e) e.value=''; });
+    const an = document.getElementById('w-anim'); if (an) an.value='auto';
+    const au = document.getElementById('w-audio'); if (au) au.value='ninguno';
+  }
+  // Auto-categoría: adivina la categoría por las palabras del título y la mapea
+  // a una categoría YA existente. Si no encuentra nada, devuelve '' (se usa la
+  // que la admin haya tocado, o la primera). La admin siempre puede corregirla.
+  _guessCat(title){
+    const norm = s => (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+    const t = norm(title); if (!t) return '';
+    const SIN = {
+      'balayage':['balayage','baliage','baby light','babylights'],
+      'mechas':['mecha','mechas','highlights','iluminacion'],
+      'tinte':['tinte','color','coloracion','rojo','rubio','moreno','borgo','cobre','platino'],
+      'correccion de color':['correccion','corregir','neutraliz','matiz','decolora'],
+      'alisado':['alisado','keratina','queratina','botox capilar','liso'],
+      'hidratacion':['hidrata','nutricion','mascarilla','tratamiento','nutre'],
+      'corte':['corte','cortes','flequillo','capas','mariposa'],
+      'extensiones':['extension','extensiones'],
+      'pestanas':['pestana','pestanas','lifting','extension de pestana']
+    };
+    for (const c of this.state.cats){ if (t.indexOf(norm(c.name)) >= 0) return c.name; }
+    for (const c of this.state.cats){
+      const key = norm(c.name), words = SIN[key];
+      if (words && words.some(w => t.indexOf(w) >= 0)) return c.name;
+    }
+    for (const k in SIN){ if (SIN[k].some(w => t.indexOf(w) >= 0)){
+      const f = this.state.cats.find(c => norm(c.name) === k); if (f) return f.name;
+    }}
+    return '';
+  }
   saveWork(){
     const t = document.getElementById('w-title');
     const v = document.getElementById('w-video');
+    const anEl = document.getElementById('w-anim');
+    const auEl = document.getElementById('w-audio');
     const d = this.state.draft;
     const title = (t && t.value.trim()) || d.cat || 'Trabajo';
     const video = (v && v.value.trim()) || '';
+    const anim = (anEl && anEl.value) || 'auto';
+    const audio = (auEl && auEl.value) || 'ninguno';
     if (!d.antes && !d.despues){ alert('Sube o pega al menos una foto (antes o después).'); return; }
-    const cat = d.cat || (this.state.cats[0] && this.state.cats[0].name) || 'Otro';
-    const rec = {id:d.id||this._uid(), cat, tag:cat, title, antes:d.antes||'', despues:d.despues||'', video};
+    const cat = d.cat || this._guessCat(title) || (this.state.cats[0] && this.state.cats[0].name) || 'Otro';
+    const rec = {id:d.id||this._uid(), cat, tag:cat, title, antes:d.antes||'', despues:d.despues||'', video, anim, audio};
     this.setState(s => {
       const works = d.id ? s.works.map(w => w.id===d.id?rec:w) : [rec, ...s.works];
       return {works, draft:{id:null, cat:'', antes:'', despues:''}};
