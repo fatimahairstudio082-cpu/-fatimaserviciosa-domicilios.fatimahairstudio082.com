@@ -135,6 +135,25 @@ input::placeholder,textarea::placeholder{color:rgba(255,255,255,0.3);}
               </sc-for>
             </div>
 
+            <sc-if value="{{ bqShowPromo }}" hint-placeholder-val="{{ false }}">
+              <div style="background:rgba(197,160,89,0.06);border:1px solid rgba(197,160,89,0.25);border-radius:11px;padding:12px 13px;margin-bottom:14px;">
+                <p style="margin:0 0 9px;font-size:0.64rem;color:#e8c97a;font-weight:700;letter-spacing:0.5px;">✨ Promoción · se publica en la web y la ven todas tus clientas (sin descargar)</p>
+                <p class="adm-lbl">Texto que narra la voz (gratis)</p>
+                <textarea id="bq-texto" placeholder="Ej. ¡Promo de septiembre! Balayage a domicilio con 20% de descuento. Reserva tu cita hoy." rows="3" class="adm-in" style="margin-bottom:11px;resize:vertical;"></textarea>
+                <p class="adm-lbl">Efecto de la imagen</p>
+                <select id="bq-anim" class="adm-in" style="margin-bottom:11px;">
+                  <option value="auto">✨ Automático (recomendado)</option>
+                  <option value="kenburns">🎥 Acercamiento (Ken Burns)</option>
+                  <option value="zoom">🔍 Zoom suave</option>
+                  <option value="3d">🧊 Giro 3D</option>
+                  <option value="fundido">🎞️ Fundido</option>
+                  <option value="ninguna">— Sin efecto</option>
+                </select>
+                <p class="adm-lbl">Categoría (opcional)</p>
+                <input id="bq-cat" type="text" placeholder="Ej. Balayage, Promoción, Mechas…" class="adm-in" style="margin-bottom:2px;">
+              </div>
+            </sc-if>
+
             <sc-if value="{{ bqShowEnlace }}" hint-placeholder-val="{{ true }}">
               <p class="adm-lbl">Enlace (URL)</p>
               <input id="bq-enlace" type="text" placeholder="https://www.amway.es/..." class="adm-in" style="margin-bottom:14px;">
@@ -671,10 +690,13 @@ class Component extends DCLogic {
       const d=document.getElementById('bq-desc'); if(d) d.value=b.desc||'';
       const e=document.getElementById('bq-enlace'); if(e) e.value=b.enlace||'';
       const h=document.getElementById('bq-html'); if(h) h.value=b.html||'';
+      const tx=document.getElementById('bq-texto'); if(tx) tx.value=b.texto||'';
+      const an=document.getElementById('bq-anim'); if(an) an.value=b.anim||'auto';
+      const ca=document.getElementById('bq-cat'); if(ca) ca.value=b.cat||'';
       try { window.scrollTo({top:0,behavior:'smooth'}); } catch(x){}
     });
   }
-  cancelBloque(){ this.setState({bloqueDraft:{id:null, tipo:'enlace', img:''}}, () => { ['bq-titulo','bq-desc','bq-enlace','bq-html','bq-drive'].forEach(id=>{const e=document.getElementById(id); if(e) e.value='';}); }); }
+  cancelBloque(){ this.setState({bloqueDraft:{id:null, tipo:'enlace', img:''}}, () => { ['bq-titulo','bq-desc','bq-enlace','bq-html','bq-drive','bq-texto','bq-cat'].forEach(id=>{const e=document.getElementById(id); if(e) e.value='';}); const an=document.getElementById('bq-anim'); if(an) an.value='auto'; }); }
   saveBloque(){
     const d = this.state.bloqueDraft;
     const titulo = (document.getElementById('bq-titulo')||{}).value || '';
@@ -687,8 +709,15 @@ class Component extends DCLogic {
       if (!/^https?:\/\//i.test(enlace.trim())){ alert('El enlace debe empezar por https://'); return; }
     }
     if (d.tipo==='html' && !html.trim()){ alert('Pega el código HTML del bloque.'); return; }
+    const texto = (document.getElementById('bq-texto')||{}).value || '';
+    const anim = (document.getElementById('bq-anim')||{}).value || 'auto';
+    const cat = (document.getElementById('bq-cat')||{}).value || '';
+    if (d.tipo==='promo'){
+      if (!d.img){ alert('Sube o pega la imagen de la promoción.'); return; }
+      if (!texto.trim()){ alert('Escribe el texto que va a narrar la voz.'); return; }
+    }
     if (!window.FCF || !window.FCF.ready()){ alert('No hay conexión con la nube.'); return; }
-    const rec = { origen:'caldea', titulo:titulo.trim(), desc:desc.trim(), tipo:d.tipo, img:d.img||'', enlace:enlace.trim(), html:html };
+    const rec = { origen:'caldea', titulo:titulo.trim(), desc:desc.trim(), tipo:d.tipo, img:d.img||'', enlace:enlace.trim(), html:html, texto:texto.trim(), anim:anim, cat:cat.trim() };
     const done = () => this.cancelBloque();
     if (d.id) window.FCF.updateBloque(d.id, rec).then(done).catch(()=>alert('No se pudo guardar.'));
     else window.FCF.addBloque(rec).then(done).catch(()=>alert('No se pudo guardar.'));
@@ -1004,6 +1033,7 @@ class Component extends DCLogic {
     // ── Bloques ──
     const bd = s.bloqueDraft || {tipo:'enlace', img:''};
     const tipoDefs = [
+      {id:'promo', label:'✨ Promoción'},
       {id:'enlace', label:'🔗 Abrir fuera'},
       {id:'embed', label:'🪟 Abrir dentro'},
       {id:'html', label:'</> HTML propio'}
@@ -1012,7 +1042,7 @@ class Component extends DCLogic {
       const active = bd.tipo === t.id;
       return { label:t.label, bg:active?'#C5A059':'transparent', fg:active?'#0a0a0a':'#e8c97a', bd:active?'#C5A059':'rgba(197,160,89,0.3)', onClick:() => this.setBloqueTipo(t.id) };
     });
-    const tipoLabel = (tp) => tp==='html' ? 'Bloque HTML' : (tp==='embed' ? 'Enlace (dentro)' : 'Enlace');
+    const tipoLabel = (tp) => tp==='promo' ? '✨ Promoción' : (tp==='html' ? 'Bloque HTML' : (tp==='embed' ? 'Enlace (dentro)' : 'Enlace'));
     const bloquesAdminList = (s.bloques || []).map(b => ({
       titulo: b.titulo || 'Bloque', tipoLabel: tipoLabel(b.tipo),
       thumb: this._driveImg(b.img || ''),
@@ -1118,7 +1148,7 @@ class Component extends DCLogic {
       bqFormTitle: bd.id ? 'Editar bloque' : 'Nuevo bloque',
       bqSaveLabel: bd.id ? 'Guardar cambios' : 'Crear tarjeta',
       editingBloque: !!bd.id,
-      bqTipoOpts, bqShowEnlace: bd.tipo==='enlace'||bd.tipo==='embed', bqShowHtml: bd.tipo==='html',
+      bqTipoOpts, bqShowEnlace: bd.tipo==='enlace'||bd.tipo==='embed', bqShowHtml: bd.tipo==='html', bqShowPromo: bd.tipo==='promo',
       bqImg: this._driveImg(bd.img||''), bqHasImg: !!bd.img,
       onUpBloqueImg:() => this.upBloqueImg(), onDriveBloque:() => this.driveBloque(),
       onSaveBloque:() => this.saveBloque(), onCancelBloque:() => this.cancelBloque(),

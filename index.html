@@ -22,6 +22,7 @@
 <script src="./fc-firebase.js"></script>
 <script src="./fc-tarjetas-animadas.js"></script>
 <script src="./fc-trabajos-video.js"></script>
+<script src="./fc-promos.js"></script>
 <style>
 @keyframes fc-fade{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
 @keyframes fc-pulse{0%,100%{box-shadow:0 8px 28px rgba(197,160,89,0.32)}50%{box-shadow:0 8px 34px rgba(197,160,89,0.7)}}
@@ -1058,7 +1059,7 @@ class Component extends DCLogic {
     });
 
     // Bloques dinámicos (Amway / enlaces / HTML) publicados por la administradora
-    const bloquesView = (s.bloques || []).slice().sort((a,b) => (a.orden||0)-(b.orden||0)).map(b => {
+    const bloquesView = (s.bloques || []).filter(b => (b.tipo||'') !== 'promo').slice().sort((a,b) => (a.orden||0)-(b.orden||0)).map(b => {
       const img = b.img ? conv(b.img) : '';
       return {
         titulo: b.titulo || 'Descubre', desc: b.desc || '', hasDesc: !!b.desc,
