@@ -61,6 +61,11 @@ input::placeholder,textarea::placeholder{color:rgba(255,255,255,0.3);}
 
       <div style="padding:20px 18px;">
 
+        <!-- ░░ TARJETAS PRO (imagen + animación + créditos) · solo tras login ░░ -->
+        <sc-if value="{{ showPro }}" hint-placeholder-val="{{ false }}">
+          <div id="fap-mount"></div>
+        </sc-if>
+
         <!-- ░░ LOGIN NUBE (compartido: Citas / Bloques / Agenda / Visitas) ░░ -->
         <sc-if value="{{ needCloudLogin }}" hint-placeholder-val="{{ true }}">
           <div style="background:#141414;border:1px solid rgba(197,160,89,0.2);border-radius:16px;padding:20px;margin-bottom:18px;">
@@ -1005,7 +1010,7 @@ class Component extends DCLogic {
 
   renderVals(){
     const s = this.state;
-    const tabNames = ['Citas','Bloques','Agenda','Visitas','Trabajos','Categorías','Vídeos','Servicios','Reseñas','Portadas','Logo & App','🇪🇸 Estudio'];
+    const tabNames = ['Citas','Bloques','🛠️ Tarjetas Pro','Agenda','Visitas','Trabajos','Categorías','Vídeos','Servicios','Reseñas','Portadas','Logo & App','🇪🇸 Estudio'];
     const tabs = tabNames.map(t => {
       const active = s.tab === t;
       return { label:t, bg:active?'#C5A059':'transparent', fg:active?'#0a0a0a':'#e8c97a', bd:active?'#C5A059':'rgba(197,160,89,0.3)', onClick:() => this.setTab(t) };
@@ -1133,9 +1138,10 @@ class Component extends DCLogic {
       tabTrabajos: s.tab==='Trabajos', tabCats: s.tab==='Categorías', tabVideos: s.tab==='Vídeos',
       tabServicios: s.tab==='Servicios', tabResenas: s.tab==='Reseñas', tabPortadas: s.tab==='Portadas', tabLogo: s.tab==='Logo & App',
       tabEstudio: s.tab==='🇪🇸 Estudio',
-      // Nube (Citas / Bloques / Agenda / Visitas)
-      needCloudLogin: (['Citas','Bloques','Agenda','Visitas'].indexOf(s.tab) >= 0) && !s.fbUser,
-      cloudBar: (['Citas','Bloques','Agenda','Visitas'].indexOf(s.tab) >= 0) && !!s.fbUser,
+      // Nube (Citas / Bloques / Tarjetas Pro / Agenda / Visitas)
+      needCloudLogin: (['Citas','Bloques','🛠️ Tarjetas Pro','Agenda','Visitas'].indexOf(s.tab) >= 0) && !s.fbUser,
+      cloudBar: (['Citas','Bloques','🛠️ Tarjetas Pro','Agenda','Visitas'].indexOf(s.tab) >= 0) && !!s.fbUser,
+      showPro: s.tab==='🛠️ Tarjetas Pro' && !!s.fbUser,
       showCitas: s.tab==='Citas' && !!s.fbUser,
       showBloques: s.tab==='Bloques' && !!s.fbUser,
       showAgenda: s.tab==='Agenda' && !!s.fbUser,
