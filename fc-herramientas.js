@@ -29,7 +29,9 @@
 
   var ORO  = '#C5A059';
   var WA   = '34604822265';                                   // WhatsApp de Fátima
-  var BASE = 'https://aprendizajefatima.fatimahairstudio082.com/';
+  // URL REAL de los bloques (GitHub Pages). El dominio "aprendizajefatima..."
+  // no existe; los bloques se publican bajo github.io/<repo>/.
+  var BASE = 'https://fatimahairstudio082-cpu.github.io/aprendizajefatima.fatimahairstudio082.com/';
 
   var CARDS = [
     { id: 'b6', icon: '🛠️', titulo: 'Herramientas Pro',
