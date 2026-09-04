@@ -34,7 +34,7 @@
   var CARDS = [
     { id: 'b6', icon: '🛠️', titulo: 'Herramientas Pro',
       desc: 'Protección digital, vídeo, tarjetas, CV, recibos, flyers y folletos.',
-      src: BASE + 'bloque6_herramientas.html', credito: true, gratis: 50,
+      src: BASE + 'bloque6_herramientas.html', credito: true, abreCosto: 0,
       audio: 'Herramientas Pro es tu maletín digital para resolver tareas del día a día sin depender de nadie. ' +
              'Con Protección Digital cuidas tus archivos; con el Optimizador de Vídeo y Audio reduces el peso de tus vídeos; ' +
              'con Tarjeta Segura proteges los datos de tus tarjetas bancarias; y además creas tu CV y cartas, tu tarjeta de ' +
@@ -42,11 +42,13 @@
              'diseñadores: aquí lo haces tú misma en minutos. Tienes créditos gratis para probar; cuando quieras seguir, escríbeme por WhatsApp.' },
     { id: 'eu', icon: '🎨', titulo: 'Estudio Universal',
       desc: 'Folletos · trípticos · troquelados · vídeo · QR.',
-      src: BASE + 'Estudio_universal.html', credito: false,
+      // Estudio Universal NO reporta cada acción (bloque autónomo), así que
+      // cobra créditos AL ABRIR (abreCosto). Mismo monedero y compra que Herramientas Pro.
+      src: BASE + 'Estudio_universal.html', credito: true, abreCosto: 2,
       audio: 'Estudio Universal es tu taller de diseño e imprenta. Resuelve el problema de crear material profesional sin saber diseño: ' +
              'haces trípticos, volantes, carruseles, guías en tres dimensiones, láminas de exposición, estudio de vídeo y tu propio ' +
              'código QR sin dar tus datos. Descargas todo listo para imprenta en PDF con sangrado, PNG o JPG, o grabas un vídeo narrado. ' +
-             'Es de acceso libre: entra y crea lo que necesites.' }
+             'Tienes créditos gratis para probar; cuando quieras seguir, escríbeme por WhatsApp.' }
   ];
 
   // Paquetes de recarga (aprobados por Fátima). La compra es por WhatsApp.
@@ -79,18 +81,25 @@
     }).catch(function () { central = false; });     // anónimo no activo aún → local
   }
 
-  /* ── Crédito por dispositivo (localStorage) · respaldo ── */
-  function keyCr(id) { return 'fc_cr_' + id; }
+  /* ── Monedero ÚNICO por clienta (compartido por las 2 herramientas) ──
+     50 créditos gratis. Central en Firebase; si no, respaldo local. */
+  var GRATIS = 50, WALLET_KEY = 'fc_cr_saldo';
   function getSaldo(c) {
-    if (!c.credito) return Infinity;
-    if (central) return (centralSaldo == null) ? c.gratis : centralSaldo;   // pozo central
+    if (c && !c.credito) return Infinity;
+    if (central) return (centralSaldo == null) ? GRATIS : centralSaldo;   // pozo central
     try {
-      var v = localStorage.getItem(keyCr(c.id));
-      if (v === null) { localStorage.setItem(keyCr(c.id), c.gratis); return c.gratis; }
+      var v = localStorage.getItem(WALLET_KEY);
+      if (v === null) { localStorage.setItem(WALLET_KEY, GRATIS); return GRATIS; }
       return parseInt(v, 10) || 0;
-    } catch (e) { return c.gratis; }
+    } catch (e) { return GRATIS; }
   }
-  function setSaldo(c, v) { try { localStorage.setItem(keyCr(c.id), Math.max(0, v | 0)); } catch (e) {} }
+  function setSaldoLocal(v) { try { localStorage.setItem(WALLET_KEY, Math.max(0, v | 0)); } catch (e) {} }
+  // Gasta n del monedero (central o local). Devuelve Promise<saldo resultante>.
+  function gastar(n) {
+    n = parseInt(n, 10) || 0;
+    if (central) return window.FCF.gastarCreditos(n).then(function (ns) { centralSaldo = ns; return ns; });
+    var s = Math.max(0, getSaldo(null) - n); setSaldoLocal(s); return Promise.resolve(s);
+  }
 
   /* ── Imagen de portada por tarjeta (la sube la admin) ── */
   function keyImg(id) { return 'fc_cr_img_' + id; }
@@ -248,7 +257,7 @@
     sec.id = 'fc-herr';
     var cardsHTML = CARDS.map(function (c) {
       var img = getImg(c.id);
-      var badge = c.credito ? '<span class="fch-badge">✦ ' + c.gratis + ' créditos gratis</span>' : '<span class="fch-badge">✦ Acceso libre</span>';
+      var badge = c.credito ? '<span class="fch-badge">✦ ' + GRATIS + ' créditos gratis</span>' : '<span class="fch-badge">✦ Acceso libre</span>';
       return '<div class="fch-card" data-id="' + c.id + '">' +
                '<div class="fch-cover' + (img ? '' : ' fch-nofoto') + '"' + (img ? ' style="background-image:url(&quot;' + img + '&quot;)"' : '') + '></div>' +
                '<div class="fch-scrim"></div><div class="fch-shine"></div>' + badge +
@@ -370,9 +379,16 @@
     frame.onload = function () { if (c.credito) enviarSaldo(); };
     modal.classList.add('abierto');
     document.documentElement.style.overflow = 'hidden';
-    if (c.credito && getSaldo(c) <= 0) mostrarBloqueo();
     // AUDIO automático de bienvenida (el clic es el gesto que lo permite)
     hablar(c.audio);
+    // Crédito: sin saldo → bloqueo; con saldo → cobrar al abrir las herramientas
+    // que no reportan por acción (Estudio Universal). El bloque 6 cobra por acción.
+    if (c.credito) {
+      if (getSaldo(c) <= 0) { mostrarBloqueo(); }
+      else if (c.abreCosto > 0) {
+        gastar(c.abreCosto).then(function (ns) { pintarSaldo(); enviarSaldo(); if (ns <= 0) mostrarBloqueo(); });
+      }
+    }
   }
 
   function cerrar() {
@@ -426,15 +442,9 @@
     if (d.tipo === 'pedirCreditos') {
       enviarSaldo();
     } else if (d.tipo === 'gastarCreditos') {
-      var n = parseInt(d.cantidad, 10) || 0;
-      if (central) {
-        window.FCF.gastarCreditos(n).then(function (ns) {
-          centralSaldo = ns; pintarSaldo(); enviarSaldo(); if (ns <= 0) mostrarBloqueo();
-        }).catch(function () {});
-      } else {
-        var s = Math.max(0, getSaldo(actual) - n);
-        setSaldo(actual, s); pintarSaldo(); enviarSaldo(); if (s <= 0) mostrarBloqueo();
-      }
+      gastar(parseInt(d.cantidad, 10) || 0).then(function (ns) {
+        pintarSaldo(); enviarSaldo(); if (ns <= 0) mostrarBloqueo();
+      }).catch(function () {});
     } else if (d.tipo === 'salirBloque') {
       cerrar();
     }
