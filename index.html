@@ -23,6 +23,7 @@
 <script src="./fc-tarjetas-animadas.js"></script>
 <script src="./fc-trabajos-video.js"></script>
 <script src="./fc-promos.js"></script>
+<script src="./fc-herramientas.js"></script>
 <style>
 @keyframes fc-fade{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
 @keyframes fc-pulse{0%,100%{box-shadow:0 8px 28px rgba(197,160,89,0.32)}50%{box-shadow:0 8px 34px rgba(197,160,89,0.7)}}
@@ -604,6 +605,8 @@ class Component extends DCLogic {
   _answer(q){
     const t = this._norm(q);
     const has = (...ks) => ks.some(k => t.includes(k));
+    if (has('herramienta','herramientas pro','maletin')) return 'Herramientas Pro es tu maletín digital: Protección Digital, optimizador de vídeo y audio, tarjeta segura, CV y cartas, tu tarjeta de presentación, recibos, flyers y folletos profesionales. Resuelve el problema de pagar por varias apps o diseñadores: lo haces tú misma en minutos. Tienes créditos gratis para probar; cuando quieras seguir, te contacto por WhatsApp.';
+    if (has('estudio universal','estudio','triptico','folleto','volante','qr','imprenta')) return 'Estudio Universal es tu taller de diseño e imprenta: trípticos, volantes, carruseles, guías en 3D, láminas, estudio de vídeo y tu propio código QR sin dar tus datos. Descargas todo listo para imprenta en PDF con sangrado, PNG o JPG, o grabas un vídeo narrado. Es de acceso libre.';
     if (has('hola','buenas','buenos dias','buenas tardes','saludos')) return '¡Hola! Soy Fátima, estilista y colorimetrista a domicilio. ¿En qué puedo ayudarte? Puedo contarte sobre mis servicios, zonas o cómo agendar tu cita.';
     if (has('servicio','que haces','que ofreces','que hace','lista')) return 'Ofrezco tintes y colorimetría, corrección de color, mechas y balayage, cortes de dama y caballero, extensiones, pestañas, tratamientos de hidratación y también diseño de páginas web. ¿Cuál te interesa?';
     if (has('precio','cuesta','cuanto','vale','tarifa','presupuesto','coste')) return 'El precio depende del servicio y del largo de tu cabello. Cuéntame qué necesitas y te doy un presupuesto personalizado por WhatsApp, sin compromiso.';
@@ -730,12 +733,15 @@ class Component extends DCLogic {
   }
 
   toggleEdit(){
-    if (this.state.edit){ this.setState({edit:false}); return; }
+    if (this.state.edit){ this.setState({edit:false}); this._fcAdminSignal(false); return; }
     const pin = prompt('🔒 Clave de administradora:');
     if (pin === null) return;
-    if (pin === this.PIN) this.setState({edit:true});
+    if (pin === this.PIN){ this.setState({edit:true}); this._fcAdminSignal(true); }
     else alert('Clave incorrecta.');
   }
+  // Señal global para que los parches externos (menú de animación, etc.) sepan
+  // si el modo administradora está activo. Aditivo: no altera el estado de React.
+  _fcAdminSignal(on){ try{ window.FC_ADMIN = !!on; window.dispatchEvent(new Event('fc-admin')); }catch(e){} }
 
   _picker(){ const i = document.getElementById('fc-file'); if (i){ i.value = ''; i.click(); } }
   uploadFor(target){ if (!this.state.edit) return; this.pending = target; this._picker(); }

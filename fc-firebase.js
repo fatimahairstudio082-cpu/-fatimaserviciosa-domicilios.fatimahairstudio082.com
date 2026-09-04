@@ -162,6 +162,64 @@ window.FCF = (function () {
   }
   function currentUser() { return (ready() && auth) ? auth.currentUser : null; }
 
+  // ── Crédito por clienta (identidad anónima) ──────────────────────────────
+  // ADITIVO y bajo demanda: NADA de esto se ejecuta al cargar. Solo la app de
+  // domicilio lo invoca para las herramientas Pro. Si el "Acceso anónimo" no
+  // está activo en Firebase, signInAnon rechaza y la app usa su respaldo local.
+  function signInAnon() {
+    if (!ready() || !auth) return Promise.reject(new Error("sin-conexion"));
+    if (auth.currentUser) return Promise.resolve(auth.currentUser);
+    return auth.signInAnonymously().then(function (c) { return c.user; });
+  }
+  function currentUid() { return (ready() && auth && auth.currentUser) ? auth.currentUser.uid : ""; }
+  // Asegura creditos/{uid} con saldo inicial gratis; resuelve el uid.
+  function ensureCreditos(gratis) {
+    if (!ready()) return Promise.reject(new Error("sin-conexion"));
+    return signInAnon().then(function (u) {
+      var ref = db.collection("creditos").doc(u.uid);
+      return ref.get().then(function (s) {
+        if (s.exists) return u.uid;
+        return ref.set({ saldo: (gratis | 0), gratis: (gratis | 0), creada: stamp(), actualizada: stamp() }).then(function () { return u.uid; });
+      });
+    });
+  }
+  function watchCreditos(cb) {
+    if (!ready()) { cb(null, new Error("sin-conexion")); return function () {}; }
+    var uid = currentUid();
+    if (!uid) { cb(null, new Error("sin-uid")); return function () {}; }
+    return db.collection("creditos").doc(uid).onSnapshot(function (s) {
+      cb(s.exists ? (s.data() || {}) : null);
+    }, function (err) { cb(null, err); });
+  }
+  // Gasta n créditos (transacción atómica; nunca baja de 0). Resuelve el saldo.
+  function gastarCreditos(n) {
+    if (!ready()) return Promise.reject(new Error("sin-conexion"));
+    var uid = currentUid();
+    if (!uid) return Promise.reject(new Error("sin-uid"));
+    var ref = db.collection("creditos").doc(uid);
+    return db.runTransaction(function (tx) {
+      return tx.get(ref).then(function (doc) {
+        var s = doc.exists ? (parseInt(doc.data().saldo, 10) || 0) : 0;
+        var ns = Math.max(0, s - (parseInt(n, 10) || 0));
+        tx.set(ref, { saldo: ns, actualizada: stamp() }, { merge: true });
+        return ns;
+      });
+    });
+  }
+  // Admin (correo) recarga créditos a una clienta por su código (uid).
+  function recargarCreditos(uid, n) {
+    if (!ready()) return Promise.reject(new Error("sin-conexion"));
+    var ref = db.collection("creditos").doc(String(uid || "").trim());
+    return db.runTransaction(function (tx) {
+      return tx.get(ref).then(function (doc) {
+        var s = doc.exists ? (parseInt(doc.data().saldo, 10) || 0) : 0;
+        var ns = Math.max(0, s + (parseInt(n, 10) || 0));
+        tx.set(ref, { saldo: ns, actualizada: stamp() }, { merge: true });
+        return ns;
+      });
+    });
+  }
+
   return {
     ready: ready,
     ADMIN_EMAIL: ADMIN_EMAIL,
@@ -169,6 +227,8 @@ window.FCF = (function () {
     logVisita: logVisita, watchVisitas: watchVisitas,
     addBloque: addBloque, updateBloque: updateBloque, deleteBloque: deleteBloque, watchBloques: watchBloques,
     addFecha: addFecha, deleteFecha: deleteFecha, watchFechas: watchFechas,
-    signIn: signIn, signOut: signOut, onAuth: onAuth, currentUser: currentUser
+    signIn: signIn, signOut: signOut, onAuth: onAuth, currentUser: currentUser,
+    signInAnon: signInAnon, currentUid: currentUid, ensureCreditos: ensureCreditos,
+    watchCreditos: watchCreditos, gastarCreditos: gastarCreditos, recargarCreditos: recargarCreditos
   };
 })();
