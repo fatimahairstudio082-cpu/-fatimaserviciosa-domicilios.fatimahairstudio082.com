@@ -54,11 +54,11 @@ input::placeholder{color:rgba(255,255,255,0.32);}
   </div>
 
   <sc-if value="{{ isEdit }}" hint-placeholder-val="{{ false }}">
-    <div style="position:fixed;top:54px;left:50%;transform:translateX(-50%);width:min(480px,100%);z-index:89;background:#C5A059;color:#000;text-align:center;font-size:0.62rem;font-weight:700;letter-spacing:1px;padding:6px;">MODO EDICIÓN · toca 📷 para subir tus fotos · ➕ para añadir</div>
+    <div style="position:fixed;top:112px;left:50%;transform:translateX(-50%);width:min(480px,100%);z-index:89;background:#C5A059;color:#000;text-align:center;font-size:0.62rem;font-weight:700;letter-spacing:1px;padding:6px;">MODO EDICIÓN · toca 📷 para subir tus fotos · ➕ para añadir</div>
   </sc-if>
 
   <!-- HERO -->
-  <section id="inicio" style="position:relative;min-height:90vh;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:96px 22px 56px;overflow:hidden;">
+  <section id="inicio" style="position:relative;min-height:90vh;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:128px 22px 56px;overflow:hidden;">
     <img src="{{ heroImg }}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0.7;" alt="Fátima Caldea">
     <div style="position:absolute;inset:0;background:linear-gradient(160deg,rgba(6,6,6,0.5) 0%,rgba(26,10,16,0.45) 100%);"></div>
     <div style="position:relative;z-index:2;">
@@ -417,8 +417,8 @@ input::placeholder{color:rgba(255,255,255,0.32);}
     </div>
   </sc-if>
 
-  <!-- BOTTOM NAV -->
-  <div style="position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:min(480px,100%);z-index:90;height:64px;display:flex;background:rgba(10,10,10,0.97);backdrop-filter:blur(12px);border-top:1px solid rgba(197,160,89,0.22);">
+  <!-- NAV (ARRIBA, bajo el encabezado "Fátima Caldea") -->
+  <div style="position:fixed;top:54px;left:50%;transform:translateX(-50%);width:min(480px,100%);z-index:90;height:58px;display:flex;background:rgba(10,10,10,0.97);backdrop-filter:blur(12px);border-bottom:1px solid rgba(197,160,89,0.22);">
     <sc-for list="{{ navItems }}" as="n" hint-placeholder-count="4">
       <button onClick="{{ n.onClick }}" style="flex:1;background:transparent;border:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;color:{{ n.color }};font-family:'Montserrat',sans-serif;">
         <span style="font-size:1.1rem;">{{ n.icon }}</span>
@@ -724,7 +724,7 @@ class Component extends DCLogic {
   go(id){
     const el = document.getElementById(id);
     if (!el) return;
-    const top = el.getBoundingClientRect().top + window.scrollY - 50;
+    const top = el.getBoundingClientRect().top + window.scrollY - 120;  // header + menú superior
     window.scrollTo({top, behavior:'smooth'});
     this.setState({active:id});
   }
