@@ -49,10 +49,41 @@
              'Es de acceso libre: entra y crea lo que necesites.' }
   ];
 
-  /* ── Crédito por dispositivo (localStorage) · D2 lo llevará a Firebase ── */
+  // Paquetes de recarga (aprobados por Fátima). La compra es por WhatsApp.
+  var PACKS = [
+    { cr: 30,  eur: 6  },
+    { cr: 60,  eur: 10 },
+    { cr: 150, eur: 20 }
+  ];
+
+  /* ── Crédito CENTRAL (Firebase) con respaldo local automático ──
+     Si el "Acceso anónimo" no está activo o no hay red, central=false y se
+     usa localStorage exactamente como antes. Progresivo: nada se rompe. */
+  var central = false, centralSaldo = null, clienteCodigo = '', unsubCr = null;
+
+  function fbListo() { return !!(window.FCF && window.FCF.ready()); }
+
+  function initCentral() {
+    if (!fbListo()) return;                         // sin Firebase → respaldo local
+    window.FCF.ensureCreditos(50).then(function (uid) {
+      central = true; clienteCodigo = uid;
+      if (unsubCr) { try { unsubCr(); } catch (e) {} }
+      unsubCr = window.FCF.watchCreditos(function (data, err) {
+        if (err) return;
+        centralSaldo = data ? (parseInt(data.saldo, 10) || 0) : 0;
+        if (actual && actual.credito) {
+          pintarSaldo(); enviarSaldo();
+          if (centralSaldo <= 0) mostrarBloqueo(); else ocultarBloqueo();
+        }
+      });
+    }).catch(function () { central = false; });     // anónimo no activo aún → local
+  }
+
+  /* ── Crédito por dispositivo (localStorage) · respaldo ── */
   function keyCr(id) { return 'fc_cr_' + id; }
   function getSaldo(c) {
     if (!c.credito) return Infinity;
+    if (central) return (centralSaldo == null) ? c.gratis : centralSaldo;   // pozo central
     try {
       var v = localStorage.getItem(keyCr(c.id));
       if (v === null) { localStorage.setItem(keyCr(c.id), c.gratis); return c.gratis; }
@@ -154,7 +185,11 @@
       '#fch-block .fch-lock{font-size:2.4rem;margin-bottom:14px;}' +
       '#fch-block h4{font-family:"Cormorant Garamond",serif;color:#fff;font-size:1.7rem;margin:0 0 10px;}' +
       '#fch-block p{color:rgba(255,255,255,.6);font-size:0.82rem;line-height:1.6;max-width:340px;margin:0 0 20px;font-family:Montserrat,system-ui,sans-serif;}' +
-      '#fch-block a{display:inline-flex;align-items:center;gap:8px;background:#25D366;color:#062e16;font-weight:800;font-size:0.82rem;letter-spacing:.5px;padding:13px 22px;border-radius:50px;text-decoration:none;font-family:Montserrat,system-ui,sans-serif;}';
+      '#fch-block a{display:inline-flex;align-items:center;gap:8px;background:#25D366;color:#062e16;font-weight:800;font-size:0.82rem;letter-spacing:.5px;padding:13px 22px;border-radius:50px;text-decoration:none;font-family:Montserrat,system-ui,sans-serif;}' +
+      '#fch-packs{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:0 0 16px;}' +
+      '#fch-packs a{background:rgba(197,160,89,.14);border:1px solid rgba(197,160,89,.5);color:#f0d692;font-weight:800;font-size:0.78rem;padding:11px 16px;border-radius:14px;text-decoration:none;font-family:Montserrat,system-ui,sans-serif;display:flex;flex-direction:column;line-height:1.3;}' +
+      '#fch-packs a small{font-weight:600;font-size:0.62rem;color:#9aa;}' +
+      '#fch-code{margin-top:14px;font-size:0.6rem;color:rgba(255,255,255,.4);font-family:Montserrat,system-ui,sans-serif;word-break:break-all;max-width:320px;}';
     document.head.appendChild(st);
   }
 
@@ -234,7 +269,10 @@
       '<h2>Estudio &amp; Herramientas Pro</h2>' +
       '<div class="fch-rule"></div>' +
       '<div class="fch-grid">' + cardsHTML + '</div>' +
-      '<div class="fch-admin"><button type="button" id="fch-precio-btn">✎ Editar precio de créditos</button></div>';
+      '<div class="fch-admin">' +
+        '<button type="button" id="fch-precio-btn">✎ Editar precio de créditos</button> ' +
+        '<button type="button" id="fch-recarga-btn">💳 Recargar créditos a una clienta</button>' +
+      '</div>';
 
     host.parentNode.insertBefore(sec, host.nextSibling);
 
@@ -253,6 +291,8 @@
       var t = prompt('Precio / mensaje que verá la clienta al quedarse sin créditos:', getPrecio());
       if (t !== null) { setPrecio(t.trim()); alert('✓ Precio actualizado en este dispositivo.'); }
     });
+    var rb = sec.querySelector('#fch-recarga-btn');
+    if (rb) rb.addEventListener('click', recargaAdmin);
 
     animar(sec);
     syncAdmin();
@@ -302,7 +342,9 @@
           '<div class="fch-lock">🔒</div>' +
           '<h4>Créditos de prueba agotados</h4>' +
           '<p id="fch-block-msg"></p>' +
+          '<div id="fch-packs"></div>' +
           '<a id="fch-wa" target="_blank" rel="noopener">📲 Escribir a Fátima por WhatsApp</a>' +
+          '<p id="fch-code"></p>' +
         '</div>' +
       '</div>';
     document.body.appendChild(modal);
@@ -354,12 +396,28 @@
         creditos_b6: s, creditos_b7: s, creditos_b8: s, creditos_b9: s }, '*');
     } catch (e) {}
   }
+  function waPack(p) {
+    var titulo = actual ? actual.titulo : 'Herramientas Pro';
+    var code = (central && clienteCodigo) ? ('\nMi código: ' + clienteCodigo) : '';
+    var msg = 'Hola Fátima 👋 Quiero comprar ' + p.cr + ' créditos por ' + p.eur + '€ para "' + titulo + '".' + code;
+    return 'https://wa.me/' + WA + '?text=' + encodeURIComponent(msg);
+  }
   function mostrarBloqueo() {
     if (!bloqueo) return;
+    var titulo = actual ? actual.titulo : 'Herramientas Pro';
     modal.querySelector('#fch-block-msg').textContent = getPrecio();
-    modal.querySelector('#fch-wa').href = waLink(actual ? actual.titulo : 'Herramientas Pro');
+    // paquetes de recarga (compra por WhatsApp)
+    modal.querySelector('#fch-packs').innerHTML = PACKS.map(function (p) {
+      return '<a href="' + waPack(p) + '" target="_blank" rel="noopener">' + p.cr + ' créditos · ' + p.eur + '€<small>' +
+             (p.eur / p.cr).toFixed(2).replace('.', ',') + '€/crédito</small></a>';
+    }).join('');
+    modal.querySelector('#fch-wa').href = waLink(titulo);
+    // código de la clienta (para que Fátima recargue tras el pago)
+    var cd = modal.querySelector('#fch-code');
+    cd.textContent = (central && clienteCodigo) ? ('Tu código: ' + clienteCodigo) : '';
     bloqueo.classList.add('on');
   }
+  function ocultarBloqueo() { if (bloqueo) bloqueo.classList.remove('on'); }
 
   window.addEventListener('message', function (e) {
     var d = e.data || {};
@@ -369,11 +427,14 @@
       enviarSaldo();
     } else if (d.tipo === 'gastarCreditos') {
       var n = parseInt(d.cantidad, 10) || 0;
-      var s = Math.max(0, getSaldo(actual) - n);
-      setSaldo(actual, s);
-      pintarSaldo();
-      enviarSaldo();
-      if (s <= 0) mostrarBloqueo();
+      if (central) {
+        window.FCF.gastarCreditos(n).then(function (ns) {
+          centralSaldo = ns; pintarSaldo(); enviarSaldo(); if (ns <= 0) mostrarBloqueo();
+        }).catch(function () {});
+      } else {
+        var s = Math.max(0, getSaldo(actual) - n);
+        setSaldo(actual, s); pintarSaldo(); enviarSaldo(); if (s <= 0) mostrarBloqueo();
+      }
     } else if (d.tipo === 'salirBloque') {
       cerrar();
     }
@@ -382,6 +443,33 @@
   document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape' && modal && modal.classList.contains('abierto')) cerrar();
   });
+
+  /* ── Recarga de créditos por la administradora (requiere Firebase + correo) ── */
+  function ensureAdminEmail() {
+    var F = window.FCF;
+    if (!fbListo()) return Promise.reject(new Error('sin conexión a Firebase'));
+    var u = F.currentUser();
+    if (u && u.email === F.ADMIN_EMAIL) return Promise.resolve();
+    var email = prompt('Correo de administradora:', F.ADMIN_EMAIL || '');
+    if (!email) return Promise.reject(new Error('cancelado'));
+    var pass = prompt('Contraseña de administradora:');
+    if (!pass) return Promise.reject(new Error('cancelado'));
+    return F.signIn(email.trim(), pass);
+  }
+  function recargaAdmin() {
+    if (!fbListo()) { alert('El crédito central aún no está activo (Firebase). Cuando actives el Acceso anónimo y las reglas, podrás recargar aquí.'); return; }
+    var code = prompt('Código de la clienta (te lo envía por WhatsApp):');
+    if (!code || !code.trim()) return;
+    var n = parseInt(prompt('¿Cuántos créditos añadir? (30, 60, 150…)'), 10);
+    if (!n || n <= 0) { alert('Cantidad no válida.'); return; }
+    ensureAdminEmail().then(function () {
+      return window.FCF.recargarCreditos(code.trim(), n);
+    }).then(function (ns) {
+      alert('✓ Recargado. Nuevo saldo de la clienta: ' + ns + ' créditos.');
+    }).catch(function (e) {
+      alert('No se pudo recargar: ' + (e && e.message ? e.message : e));
+    });
+  }
 
   /* ── Modo administradora: mostrar controles internos ── */
   function syncAdmin() {
@@ -392,6 +480,7 @@
   /* ── Arranque: esperar a que el runtime pinte #servicios ── */
   function arrancar() {
     css();
+    initCentral();          // intenta crédito central (Firebase); si no, respaldo local
     if (render()) return;
     var t = 0, iv = setInterval(function () {
       if (render() || (t += 1) > 40) clearInterval(iv);   // reintenta ~12s

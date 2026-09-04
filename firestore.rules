@@ -53,6 +53,25 @@ service cloud.firestore {
       allow read, write: if isAdmin();
     }
 
+    // Créditos por clienta (herramientas Pro). Cada clienta entra con identidad
+    // ANÓNIMA y su saldo vive en creditos/{uid}. Reglas de seguridad:
+    //   · Una clienta solo lee SU documento; la administradora lee todos.
+    //   · Al crear, el saldo inicial debe ser exactamente 50 (regalo de prueba).
+    //   · Una clienta solo puede BAJAR su saldo (gastar), nunca subírselo.
+    //   · Solo la administradora (por correo) puede recargar/subir o borrar.
+    // Requiere activar "Acceso anónimo" en Authentication.
+    match /creditos/{uid} {
+      allow read:   if request.auth != null && (request.auth.uid == uid || isAdmin());
+      allow create: if request.auth != null && request.auth.uid == uid
+                    && request.resource.data.saldo == 50;
+      allow update: if isAdmin()
+                    || (request.auth != null && request.auth.uid == uid
+                        && request.resource.data.saldo is int
+                        && request.resource.data.saldo >= 0
+                        && request.resource.data.saldo <= resource.data.saldo);
+      allow delete: if isAdmin();
+    }
+
     // Todo lo demás: cerrado.
     match /{document=**} {
       allow read, write: if false;
