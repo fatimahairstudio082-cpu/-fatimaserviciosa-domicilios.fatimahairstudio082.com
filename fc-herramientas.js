@@ -249,7 +249,9 @@
   /* ── Sección con las tarjetas ── */
   function render() {
     if (document.getElementById('fc-herr')) return true;
-    var host = document.getElementById('servicios');
+    // ARRIBA: justo después del hero (#inicio), en el área del botón
+    // "Visita Fátima Hair Studio" — no al final de la página.
+    var host = document.getElementById('inicio');
     if (!host) return false;
     ensureInput();
 
