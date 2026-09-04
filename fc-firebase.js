@@ -127,6 +127,24 @@ window.FCF = (function () {
       }, function (err) { cb(null, err); });
   }
 
+  // ── Config de las tarjetas Pro (imagen + animación + precio) ──────────────
+  // Se guarda en un documento fijo bloques/herr_cfg (lectura pública, escribe
+  // solo la administradora). Reutiliza la colección "bloques" (sus reglas) sin
+  // tocar firestore.rules. index.html lo excluye de "Descubre" por su tipo.
+  function watchHerrCfg(cb) {
+    if (!ready()) { cb(null, new Error("sin-conexion")); return function () {}; }
+    return db.collection("bloques").doc("herr_cfg").onSnapshot(function (s) {
+      cb(s.exists ? (s.data() || {}) : {});
+    }, function (err) { cb(null, err); });
+  }
+  function saveHerrCfg(data) {
+    if (!ready()) return Promise.reject(new Error("sin-conexion"));
+    var rec = { origen: "caldea", tipo: "herr_cfg" };
+    for (var k in data) if (data.hasOwnProperty(k)) rec[k] = data[k];
+    rec.actualizada = stamp();
+    return db.collection("bloques").doc("herr_cfg").set(rec, { merge: true });
+  }
+
   // ── Fechas / recordatorios (privados de la administradora) ───────────────
   function addFecha(data) {
     if (!ready()) return Promise.reject(new Error("sin-conexion"));
@@ -226,6 +244,7 @@ window.FCF = (function () {
     addCita: addCita, watchCitas: watchCitas, updateCita: updateCita, deleteCita: deleteCita,
     logVisita: logVisita, watchVisitas: watchVisitas,
     addBloque: addBloque, updateBloque: updateBloque, deleteBloque: deleteBloque, watchBloques: watchBloques,
+    watchHerrCfg: watchHerrCfg, saveHerrCfg: saveHerrCfg,
     addFecha: addFecha, deleteFecha: deleteFecha, watchFechas: watchFechas,
     signIn: signIn, signOut: signOut, onAuth: onAuth, currentUser: currentUser,
     signInAnon: signInAnon, currentUid: currentUid, ensureCreditos: ensureCreditos,

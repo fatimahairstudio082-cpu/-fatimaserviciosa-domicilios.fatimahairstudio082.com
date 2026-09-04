@@ -1065,7 +1065,7 @@ class Component extends DCLogic {
     });
 
     // Bloques dinámicos (Amway / enlaces / HTML) publicados por la administradora
-    const bloquesView = (s.bloques || []).filter(b => (b.tipo||'') !== 'promo').slice().sort((a,b) => (a.orden||0)-(b.orden||0)).map(b => {
+    const bloquesView = (s.bloques || []).filter(b => (b.tipo||'') !== 'promo' && (b.tipo||'') !== 'herr_cfg').slice().sort((a,b) => (a.orden||0)-(b.orden||0)).map(b => {
       const img = b.img ? conv(b.img) : '';
       return {
         titulo: b.titulo || 'Descubre', desc: b.desc || '', hasDesc: !!b.desc,

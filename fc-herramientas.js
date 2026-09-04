@@ -104,14 +104,22 @@
     var s = Math.max(0, getSaldo(null) - n); setSaldoLocal(s); return Promise.resolve(s);
   }
 
-  /* ── Imagen de portada por tarjeta (la sube la admin) ── */
+  /* ── Config sincronizada desde el Panel (Firebase): imagen, animación, precio ── */
+  var herrCfg = {};   // { img_b6, anim_b6, img_eu, anim_eu, precio }
+
+  /* ── Imagen de portada por tarjeta ── */
   function keyImg(id) { return 'fc_cr_img_' + id; }
   function getImg(id) { try { return localStorage.getItem(keyImg(id)) || ''; } catch (e) { return ''; } }
   function setImg(id, data) { try { data ? localStorage.setItem(keyImg(id), data) : localStorage.removeItem(keyImg(id)); } catch (e) {} }
+  // Portada efectiva: primero la del Panel (Firebase), si no, la local del dispositivo.
+  function coverDe(id) { return herrCfg['img_' + id] || getImg(id) || ''; }
 
-  /* ── Precio (editable por la admin; guardado en el dispositivo) ── */
+  /* ── Precio (del Panel/Firebase; si no, del dispositivo) ── */
   var PRECIO_DEF = 'Escríbeme por WhatsApp para conocer el precio y recargar tus créditos.';
-  function getPrecio() { try { return localStorage.getItem('fc_cr_precio') || PRECIO_DEF; } catch (e) { return PRECIO_DEF; } }
+  function getPrecio() {
+    if (herrCfg.precio) return herrCfg.precio;
+    try { return localStorage.getItem('fc_cr_precio') || PRECIO_DEF; } catch (e) { return PRECIO_DEF; }
+  }
   function setPrecio(t) { try { localStorage.setItem('fc_cr_precio', t || ''); } catch (e) {} }
 
   function waLink(titulo) {
@@ -149,6 +157,13 @@
     st.id = 'fch-css';
     st.textContent =
       '@keyframes fch-in{from{opacity:0;transform:translateY(26px)}to{opacity:1;transform:none}}' +
+      '@keyframes fch-subir{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:none}}' +
+      '@keyframes fch-zoom{from{opacity:0;transform:scale(.86)}to{opacity:1;transform:none}}' +
+      '@keyframes fch-aparecer{from{opacity:0}to{opacity:1}}' +
+      '@keyframes fch-izq{from{opacity:0;transform:translateX(-34px)}to{opacity:1;transform:none}}' +
+      '@keyframes fch-der{from{opacity:0;transform:translateX(34px)}to{opacity:1;transform:none}}' +
+      '@keyframes fch-voltear{from{opacity:0;transform:perspective(700px) rotateY(-22deg) translateY(14px)}to{opacity:1;transform:none}}' +
+      '@keyframes fch-rebote{0%{opacity:0;transform:scale(.8)}60%{opacity:1;transform:scale(1.05)}100%{transform:none}}' +
       '@keyframes fch-ken{0%{transform:scale(1) translateY(0)}100%{transform:scale(1.14) translateY(-2%)}}' +
       '@keyframes fch-brillo{0%{transform:translateX(-120%)}60%,100%{transform:translateX(240%)}}' +
       '#fc-herr{padding:54px 18px 30px;background:#111;}' +
@@ -158,7 +173,7 @@
       '#fc-herr .fch-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}' +
       '@media(max-width:520px){#fc-herr .fch-grid{grid-template-columns:1fr;}}' +
       '.fch-card{opacity:0;position:relative;border:1px solid rgba(197,160,89,.22);border-radius:16px;overflow:hidden;cursor:pointer;display:flex;flex-direction:column;min-height:230px;transition:transform .5s cubic-bezier(.22,.61,.36,1),box-shadow .5s,border-color .5s;will-change:transform,opacity;}' +
-      '.fch-card.fch-vis{animation:fch-in .8s cubic-bezier(.22,.61,.36,1) both;opacity:1;}' +
+      '.fch-card.fch-vis{animation:var(--fch-anim,fch-in) .8s cubic-bezier(.22,.61,.36,1) both;opacity:1;}' +
       '.fch-card:hover{transform:translateY(-6px) perspective(900px) rotateX(2.5deg);box-shadow:0 20px 44px rgba(0,0,0,.55),0 0 0 1px rgba(197,160,89,.45);border-color:rgba(197,160,89,.6);}' +
       /* portada animada (Ken-Burns) */
       '.fch-cover{position:absolute;inset:0;background-size:cover;background-position:center;background-repeat:no-repeat;animation:fch-ken 14s ease-in-out infinite alternate;will-change:transform;}' +
@@ -243,10 +258,24 @@
     var el = document.querySelector('#fc-herr .fch-card[data-id="' + id + '"]');
     if (!el) return;
     var cover = el.querySelector('.fch-cover');
-    var data = getImg(id);
+    var data = coverDe(id);
     if (data) { cover.style.backgroundImage = 'url("' + data + '")'; cover.classList.remove('fch-nofoto'); }
     else { cover.style.backgroundImage = ''; cover.classList.add('fch-nofoto'); }
     el.classList.remove('fch-vis'); void el.offsetWidth; el.classList.add('fch-vis');
+  }
+
+  // Aplica la config del Panel (Firebase): portada + animación elegida por tarjeta.
+  function aplicarCfg() {
+    CARDS.forEach(function (c) {
+      var el = document.querySelector('#fc-herr .fch-card[data-id="' + c.id + '"]');
+      if (!el) return;
+      var cover = el.querySelector('.fch-cover'), data = coverDe(c.id);
+      if (data) { cover.style.backgroundImage = 'url("' + data + '")'; cover.classList.remove('fch-nofoto'); }
+      else { cover.style.backgroundImage = ''; cover.classList.add('fch-nofoto'); }
+      var anim = herrCfg['anim_' + c.id];
+      if (anim) el.style.setProperty('--fch-anim', 'fch-' + anim);
+      el.classList.remove('fch-vis'); void el.offsetWidth; el.classList.add('fch-vis');
+    });
   }
 
   /* ── Sección con las tarjetas ── */
@@ -261,7 +290,7 @@
     var sec = document.createElement('section');
     sec.id = 'fc-herr';
     var cardsHTML = CARDS.map(function (c) {
-      var img = getImg(c.id);
+      var img = coverDe(c.id);
       var badge = c.credito ? '<span class="fch-badge">✦ ' + GRATIS + ' créditos gratis</span>' : '<span class="fch-badge">✦ Acceso libre</span>';
       return '<div class="fch-card" data-id="' + c.id + '">' +
                '<div class="fch-cover' + (img ? '' : ' fch-nofoto') + '"' + (img ? ' style="background-image:url(&quot;' + img + '&quot;)"' : '') + '></div>' +
@@ -496,6 +525,10 @@
   function arrancar() {
     css();
     initCentral();          // intenta crédito central (Firebase); si no, respaldo local
+    // Config del Panel (imagen + animación + precio) sincronizada por Firebase.
+    if (fbListo() && window.FCF.watchHerrCfg) {
+      try { window.FCF.watchHerrCfg(function (data, err) { if (err) return; herrCfg = data || {}; aplicarCfg(); }); } catch (e) {}
+    }
     if (render()) return;
     var t = 0, iv = setInterval(function () {
       if (render() || (t += 1) > 40) clearInterval(iv);   // reintenta ~12s
