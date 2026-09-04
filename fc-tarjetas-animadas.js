@@ -55,8 +55,9 @@
       /* si el usuario pide menos animación, todo visible y quieto */
       '@media (prefers-reduced-motion: reduce){.fcta-card{opacity:1!important;animation:none!important}}' +
       /* panel flotante */
-      '#fcta-fab{position:fixed;left:16px;bottom:18px;z-index:99998;width:52px;height:52px;border-radius:50%;border:2px solid ' + ORO + ';background:#111;color:' + ORO + ';font-size:22px;cursor:pointer;box-shadow:0 8px 24px rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;}' +
-      '#fcta-panel{position:fixed;left:16px;bottom:80px;z-index:99998;width:230px;background:#141414;border:1px solid rgba(197,160,89,.3);border-radius:16px;padding:14px;box-shadow:0 16px 44px rgba(0,0,0,.6);font-family:Montserrat,system-ui,sans-serif;color:#eee;display:none;}' +
+      /* panel flotante INTERNO (solo admin): arriba a la derecha, oculto por defecto */
+      '#fcta-fab{position:fixed;right:14px;top:14px;z-index:99998;width:48px;height:48px;border-radius:50%;border:2px solid ' + ORO + ';background:#111;color:' + ORO + ';font-size:20px;cursor:pointer;box-shadow:0 8px 24px rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;}' +
+      '#fcta-panel{position:fixed;right:14px;top:70px;z-index:99998;width:230px;background:#141414;border:1px solid rgba(197,160,89,.3);border-radius:16px;padding:14px;box-shadow:0 16px 44px rgba(0,0,0,.6);font-family:Montserrat,system-ui,sans-serif;color:#eee;display:none;}' +
       '#fcta-panel.abierto{display:block;}' +
       '#fcta-panel h4{margin:0 0 10px;font-size:.8rem;color:' + ORO + ';letter-spacing:1px;font-weight:700;}' +
       '#fcta-panel label{display:block;font-size:.66rem;color:#aaa;margin:10px 0 4px;letter-spacing:.5px;}' +
@@ -217,6 +218,17 @@
       if (CFG.on) { preparar(); reanimar(); }
       else { tarjetas().forEach(function (el) { el.classList.remove('fcta-card', 'fcta-in'); el.style.opacity = '1'; }); }
     });
+
+    // ── El botón/menú es INTERNO: visible solo en modo administradora ──
+    // (las animaciones de las tarjetas siguen activas para el público; esto
+    //  solo oculta el control ✨ a las clientas). Señal desde index.html.
+    function fcAdminSync(){
+      var on = !!window.FC_ADMIN;
+      fab.style.display = on ? 'flex' : 'none';
+      if (!on) panel.classList.remove('abierto');
+    }
+    fcAdminSync();
+    window.addEventListener('fc-admin', fcAdminSync);
   }
 
   /* ── Arranque + re-aplicación cuando el runtime re-renderiza ── */

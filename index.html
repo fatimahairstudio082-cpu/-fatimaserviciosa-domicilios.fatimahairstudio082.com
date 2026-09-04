@@ -23,6 +23,7 @@
 <script src="./fc-tarjetas-animadas.js"></script>
 <script src="./fc-trabajos-video.js"></script>
 <script src="./fc-promos.js"></script>
+<script src="./fc-herramientas.js"></script>
 <style>
 @keyframes fc-fade{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
 @keyframes fc-pulse{0%,100%{box-shadow:0 8px 28px rgba(197,160,89,0.32)}50%{box-shadow:0 8px 34px rgba(197,160,89,0.7)}}
@@ -730,12 +731,15 @@ class Component extends DCLogic {
   }
 
   toggleEdit(){
-    if (this.state.edit){ this.setState({edit:false}); return; }
+    if (this.state.edit){ this.setState({edit:false}); this._fcAdminSignal(false); return; }
     const pin = prompt('🔒 Clave de administradora:');
     if (pin === null) return;
-    if (pin === this.PIN) this.setState({edit:true});
+    if (pin === this.PIN){ this.setState({edit:true}); this._fcAdminSignal(true); }
     else alert('Clave incorrecta.');
   }
+  // Señal global para que los parches externos (menú de animación, etc.) sepan
+  // si el modo administradora está activo. Aditivo: no altera el estado de React.
+  _fcAdminSignal(on){ try{ window.FC_ADMIN = !!on; window.dispatchEvent(new Event('fc-admin')); }catch(e){} }
 
   _picker(){ const i = document.getElementById('fc-file'); if (i){ i.value = ''; i.click(); } }
   uploadFor(target){ if (!this.state.edit) return; this.pending = target; this._picker(); }
