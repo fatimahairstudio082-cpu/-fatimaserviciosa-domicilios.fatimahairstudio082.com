@@ -1,27 +1,26 @@
 /* ══════════════════════════════════════════════════════════════════
-   HERRAMIENTAS PRO + ESTUDIO UNIVERSAL · Tarjetas interactivas con
-   crédito · Fátima Servicios a Domicilio
+   HERRAMIENTAS PRO + ESTUDIO UNIVERSAL · Tarjetas interactivas
+   profesionales con imagen, animación, audio y crédito
+   Fátima Servicios a Domicilio
    ------------------------------------------------------------------
    PARCHE ADITIVO. No reconstruye la página ni toca el runtime de
-   diseño. Inyecta su propia sección con 2 tarjetas animadas que abren
-   bloques AUTÓNOMOS (alojados en el sitio de aprendizaje) dentro de un
-   modal a pantalla completa:
+   diseño. Inyecta su propia sección con 2 tarjetas que abren bloques
+   AUTÓNOMOS (alojados en el sitio de aprendizaje) en un modal a
+   pantalla completa.
 
-     1) 🛠️ Herramientas Pro  → bloque6_herramientas.html  (con crédito)
-     2) 🎨 Estudio Universal → Estudio_universal.html      (acceso libre)
+   Cada tarjeta es PROFESIONAL y viva:
+     · IMAGEN de portada que la administradora sube desde el admin de
+       la propia app (se comprime igual que el resto de imágenes).
+     · ANIMACIÓN automática tipo vídeo (zoom lento Ken-Burns + brillo
+       dorado + leve 3D al tocar). No depende de ningún control externo.
+     · AUDIO con la voz gratis de Google: al abrir la tarjeta se explica
+       para qué sirve la herramienta y qué problema resuelve.
+     · CRÉDITO (solo Herramientas Pro): 50 gratis por dispositivo; al
+       agotarse, aviso + WhatsApp directo a Fátima.  (El crédito central
+       en Firebase es el paso D2.)
 
-   CRÉDITO (solo Herramientas Pro):
-     · La clienta recibe 50 créditos gratis por dispositivo para probar.
-     · Esta app hace de "hub": el bloque pide saldo por postMessage
-       ({tipo:'pedirCreditos'}) y avisa cada gasto ({tipo:'gastarCreditos'}).
-       Aquí se descuenta y se devuelve el saldo ({tipo:'sincronizarCreditos'}).
-     · Al llegar a 0, se cubre la herramienta con un aviso y un botón de
-       WhatsApp que llega directo a Fátima para recargar.
-     · El precio lo edita la administradora desde el menú interno (se
-       guarda en el dispositivo). Aparece en el aviso y en el WhatsApp.
-
-   Todo progresivo: si el bloque no carga, la app sigue igual. Cero
-   dependencias externas.  Marca de carga: window._FC_HERRAMIENTAS
+   Progresivo: si algo no está disponible, la app sigue igual.
+   Marca de carga: window._FC_HERRAMIENTAS
    ══════════════════════════════════════════════════════════════════ */
 (function () {
   'use strict';
@@ -34,14 +33,23 @@
 
   var CARDS = [
     { id: 'b6', icon: '🛠️', titulo: 'Herramientas Pro',
-      desc: 'Utilidades profesionales de color, cálculo, generación y descargas.',
-      src: BASE + 'bloque6_herramientas.html', credito: true, gratis: 50 },
+      desc: 'Protección digital, vídeo, tarjetas, CV, recibos, flyers y folletos.',
+      src: BASE + 'bloque6_herramientas.html', credito: true, gratis: 50,
+      audio: 'Herramientas Pro es tu maletín digital para resolver tareas del día a día sin depender de nadie. ' +
+             'Con Protección Digital cuidas tus archivos; con el Optimizador de Vídeo y Audio reduces el peso de tus vídeos; ' +
+             'con Tarjeta Segura proteges los datos de tus tarjetas bancarias; y además creas tu CV y cartas, tu tarjeta de ' +
+             'presentación, recibos, flyers y folletos profesionales. Resuelve el problema de pagar por varias aplicaciones o ' +
+             'diseñadores: aquí lo haces tú misma en minutos. Tienes créditos gratis para probar; cuando quieras seguir, escríbeme por WhatsApp.' },
     { id: 'eu', icon: '🎨', titulo: 'Estudio Universal',
       desc: 'Folletos · trípticos · troquelados · vídeo · QR.',
-      src: BASE + 'Estudio_universal.html', credito: false }
+      src: BASE + 'Estudio_universal.html', credito: false,
+      audio: 'Estudio Universal es tu taller de diseño e imprenta. Resuelve el problema de crear material profesional sin saber diseño: ' +
+             'haces trípticos, volantes, carruseles, guías en tres dimensiones, láminas de exposición, estudio de vídeo y tu propio ' +
+             'código QR sin dar tus datos. Descargas todo listo para imprenta en PDF con sangrado, PNG o JPG, o grabas un vídeo narrado. ' +
+             'Es de acceso libre: entra y crea lo que necesites.' }
   ];
 
-  /* ── Crédito por dispositivo (localStorage) ── */
+  /* ── Crédito por dispositivo (localStorage) · D2 lo llevará a Firebase ── */
   function keyCr(id) { return 'fc_cr_' + id; }
   function getSaldo(c) {
     if (!c.credito) return Infinity;
@@ -52,6 +60,11 @@
     } catch (e) { return c.gratis; }
   }
   function setSaldo(c, v) { try { localStorage.setItem(keyCr(c.id), Math.max(0, v | 0)); } catch (e) {} }
+
+  /* ── Imagen de portada por tarjeta (la sube la admin) ── */
+  function keyImg(id) { return 'fc_cr_img_' + id; }
+  function getImg(id) { try { return localStorage.getItem(keyImg(id)) || ''; } catch (e) { return ''; } }
+  function setImg(id, data) { try { data ? localStorage.setItem(keyImg(id), data) : localStorage.removeItem(keyImg(id)); } catch (e) {} }
 
   /* ── Precio (editable por la admin; guardado en el dispositivo) ── */
   var PRECIO_DEF = 'Escríbeme por WhatsApp para conocer el precio y recargar tus créditos.';
@@ -64,6 +77,28 @@
     return 'https://wa.me/' + WA + '?text=' + encodeURIComponent(msg);
   }
 
+  /* ── Voz gratis de Google (mismo criterio que el chatbot de la app) ── */
+  var _voces = [];
+  function cargarVoces() { try { _voces = (window.speechSynthesis && speechSynthesis.getVoices()) || []; } catch (e) {} }
+  function vozES() {
+    var vs = _voces.length ? _voces : ((window.speechSynthesis && speechSynthesis.getVoices()) || []);
+    return vs.find(function (v) { return /google/i.test(v.name) && /es[-_]/i.test(v.lang); }) ||
+           vs.find(function (v) { return /^es/i.test(v.lang); }) || null;
+  }
+  function hablar(texto) {
+    if (!texto || !('speechSynthesis' in window)) return;
+    try {
+      speechSynthesis.cancel();
+      var u = new SpeechSynthesisUtterance(texto.replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/gu, ''));
+      var v = vozES();
+      if (v) { u.voice = v; u.lang = v.lang; } else { u.lang = 'es-ES'; }
+      u.rate = 1; u.pitch = 1.05;
+      speechSynthesis.speak(u);
+    } catch (e) {}
+  }
+  function callarVoz() { try { speechSynthesis.cancel(); } catch (e) {} }
+  try { if (window.speechSynthesis) { cargarVoces(); speechSynthesis.onvoiceschanged = cargarVoces; } } catch (e) {}
+
   /* ── Estilos propios (namespace fch-). Se inyectan una sola vez. ── */
   function css() {
     if (document.getElementById('fch-css')) return;
@@ -71,31 +106,45 @@
     st.id = 'fch-css';
     st.textContent =
       '@keyframes fch-in{from{opacity:0;transform:translateY(26px)}to{opacity:1;transform:none}}' +
+      '@keyframes fch-ken{0%{transform:scale(1) translateY(0)}100%{transform:scale(1.14) translateY(-2%)}}' +
+      '@keyframes fch-brillo{0%{transform:translateX(-120%)}60%,100%{transform:translateX(240%)}}' +
       '#fc-herr{padding:54px 18px 30px;background:#111;}' +
       '#fc-herr .fch-eyebrow{font-size:0.58rem;letter-spacing:4px;color:' + ORO + ';text-transform:uppercase;font-weight:700;margin:0 0 8px;}' +
       '#fc-herr h2{font-family:"Cormorant Garamond",serif;font-size:2.1rem;line-height:1.05;margin:0 0 12px;color:#fff;}' +
       '#fc-herr .fch-rule{width:46px;height:1px;background:' + ORO + ';margin-bottom:24px;}' +
       '#fc-herr .fch-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}' +
       '@media(max-width:520px){#fc-herr .fch-grid{grid-template-columns:1fr;}}' +
-      '.fch-card{opacity:0;position:relative;background:linear-gradient(150deg,#181818,#0c0c0c);border:1px solid rgba(197,160,89,.22);border-radius:16px;overflow:hidden;cursor:pointer;display:flex;flex-direction:column;min-height:180px;transition:transform .5s cubic-bezier(.22,.61,.36,1),box-shadow .5s,border-color .5s;will-change:transform,opacity;}' +
+      '.fch-card{opacity:0;position:relative;border:1px solid rgba(197,160,89,.22);border-radius:16px;overflow:hidden;cursor:pointer;display:flex;flex-direction:column;min-height:230px;transition:transform .5s cubic-bezier(.22,.61,.36,1),box-shadow .5s,border-color .5s;will-change:transform,opacity;}' +
       '.fch-card.fch-vis{animation:fch-in .8s cubic-bezier(.22,.61,.36,1) both;opacity:1;}' +
-      '.fch-card:hover{transform:translateY(-6px) perspective(800px) rotateX(2deg);box-shadow:0 18px 40px rgba(0,0,0,.5),0 0 0 1px rgba(197,160,89,.4);border-color:rgba(197,160,89,.55);}' +
-      '.fch-card .fch-glow{position:absolute;inset:0;background:radial-gradient(120% 90% at 80% 0%,rgba(197,160,89,.16),transparent 60%);opacity:.7;pointer-events:none;}' +
-      '.fch-card .fch-body{position:relative;padding:22px 20px;flex:1;display:flex;flex-direction:column;}' +
-      '.fch-card .fch-ic{font-size:2rem;margin-bottom:12px;}' +
-      '.fch-card h3{font-family:"Cormorant Garamond",serif;font-size:1.4rem;margin:0 0 8px;color:#fff;line-height:1.1;}' +
-      '.fch-card p{color:rgba(255,255,255,.52);font-size:0.76rem;line-height:1.6;margin:0 0 16px;flex:1;}' +
-      '.fch-card .fch-go{align-self:flex-start;display:inline-flex;align-items:center;gap:7px;color:' + ORO + ';font-size:0.7rem;font-weight:700;letter-spacing:1px;font-family:Montserrat,system-ui,sans-serif;}' +
-      '.fch-card .fch-badge{position:absolute;top:10px;right:10px;background:rgba(197,160,89,.14);border:1px solid rgba(197,160,89,.4);color:#e8c97a;font-size:0.6rem;font-weight:700;letter-spacing:.5px;padding:4px 9px;border-radius:50px;font-family:Montserrat,system-ui,sans-serif;}' +
-      /* barra admin (solo modo interno) */
+      '.fch-card:hover{transform:translateY(-6px) perspective(900px) rotateX(2.5deg);box-shadow:0 20px 44px rgba(0,0,0,.55),0 0 0 1px rgba(197,160,89,.45);border-color:rgba(197,160,89,.6);}' +
+      /* portada animada (Ken-Burns) */
+      '.fch-cover{position:absolute;inset:0;background-size:cover;background-position:center;background-repeat:no-repeat;animation:fch-ken 14s ease-in-out infinite alternate;will-change:transform;}' +
+      '.fch-cover.fch-nofoto{background:linear-gradient(150deg,#1c1c1c,#0b0b0b);animation:none;}' +
+      '.fch-scrim{position:absolute;inset:0;background:linear-gradient(180deg,rgba(10,10,10,.15) 0%,rgba(10,10,10,.55) 55%,rgba(8,8,8,.92) 100%);}' +
+      '.fch-shine{position:absolute;top:0;bottom:0;width:40%;background:linear-gradient(100deg,transparent,rgba(197,160,89,.22),transparent);filter:blur(4px);transform:translateX(-120%);animation:fch-brillo 6.5s ease-in-out infinite;pointer-events:none;}' +
+      '.fch-body{position:relative;padding:20px 18px;margin-top:auto;}' +
+      '.fch-ic{font-size:1.7rem;margin-bottom:8px;filter:drop-shadow(0 2px 6px rgba(0,0,0,.5));}' +
+      '.fch-card h3{font-family:"Cormorant Garamond",serif;font-size:1.42rem;margin:0 0 6px;color:#fff;line-height:1.1;text-shadow:0 2px 10px rgba(0,0,0,.6);}' +
+      '.fch-card p{color:rgba(255,255,255,.72);font-size:0.74rem;line-height:1.55;margin:0 0 14px;text-shadow:0 1px 8px rgba(0,0,0,.7);}' +
+      '.fch-acts{display:flex;gap:8px;flex-wrap:wrap;}' +
+      '.fch-acts button{display:inline-flex;align-items:center;gap:6px;border:none;cursor:pointer;font-family:Montserrat,system-ui,sans-serif;font-size:0.68rem;font-weight:700;letter-spacing:.5px;padding:9px 13px;border-radius:50px;}' +
+      '.fch-open{background:' + ORO + ';color:#111;}' +
+      '.fch-say{background:rgba(0,0,0,.45);color:' + ORO + ';border:1px solid rgba(197,160,89,.5)!important;}' +
+      '.fch-badge{position:absolute;top:10px;left:10px;z-index:2;background:rgba(197,160,89,.16);border:1px solid rgba(197,160,89,.45);color:#f0d692;font-size:0.58rem;font-weight:700;letter-spacing:.5px;padding:4px 9px;border-radius:50px;font-family:Montserrat,system-ui,sans-serif;backdrop-filter:blur(3px);}' +
+      /* control admin por tarjeta (solo modo interno) */
+      '.fch-adminimg{position:absolute;top:8px;right:8px;z-index:3;display:none;gap:6px;}' +
+      'body.fch-admin-on .fch-adminimg{display:flex;}' +
+      '.fch-adminimg button{width:34px;height:34px;border-radius:50%;border:none;cursor:pointer;font-size:0.85rem;background:rgba(0,0,0,.6);color:#fff;border:1px solid rgba(197,160,89,.5)!important;}' +
       '#fc-herr .fch-admin{display:none;margin-top:18px;}' +
       'body.fch-admin-on #fc-herr .fch-admin{display:block;}' +
       '#fc-herr .fch-admin button{background:transparent;border:1px dashed rgba(197,160,89,.5);color:' + ORO + ';padding:9px 14px;border-radius:10px;font-size:0.68rem;font-weight:700;letter-spacing:.5px;cursor:pointer;font-family:Montserrat,system-ui,sans-serif;}' +
+      '@media (prefers-reduced-motion: reduce){.fch-cover,.fch-shine{animation:none!important}.fch-card{opacity:1!important;animation:none!important}}' +
       /* modal a pantalla completa */
       '#fch-modal{position:fixed;inset:0;z-index:99999;background:#0a0a0a;display:none;flex-direction:column;}' +
       '#fch-modal.abierto{display:flex;}' +
       '#fch-bar{display:flex;align-items:center;gap:10px;padding:10px 12px;background:#111;border-bottom:1px solid rgba(197,160,89,.25);}' +
       '#fch-bar .fch-t{flex:1;min-width:0;font-family:Montserrat,system-ui,sans-serif;font-size:0.82rem;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}' +
+      '#fch-say2{flex:none;border:1px solid rgba(197,160,89,.5);background:transparent;color:' + ORO + ';font-size:0.66rem;font-weight:700;padding:6px 11px;border-radius:50px;cursor:pointer;font-family:Montserrat,system-ui,sans-serif;}' +
       '#fch-cr{font-family:Montserrat,system-ui,sans-serif;font-size:0.68rem;font-weight:700;color:#111;background:' + ORO + ';padding:5px 11px;border-radius:50px;white-space:nowrap;}' +
       '#fch-x{width:34px;height:34px;flex:none;border-radius:50%;border:1px solid rgba(255,255,255,.25);background:transparent;color:#fff;font-size:1.1rem;cursor:pointer;line-height:1;}' +
       '#fch-wrap{position:relative;flex:1;background:#0a0a0a;}' +
@@ -109,23 +158,74 @@
     document.head.appendChild(st);
   }
 
+  /* ── input de archivo compartido para subir imágenes ── */
+  var fileInput = null, pendingCardId = null;
+  function ensureInput() {
+    if (fileInput) return;
+    fileInput = document.createElement('input');
+    fileInput.type = 'file'; fileInput.accept = 'image/*';
+    fileInput.style.display = 'none';
+    fileInput.addEventListener('change', function (e) {
+      var f = e.target.files && e.target.files[0];
+      e.target.value = '';
+      if (!f || !pendingCardId) return;
+      comprimir(f, function (data) {
+        setImg(pendingCardId, data);
+        pintarPortada(pendingCardId);
+        pendingCardId = null;
+      });
+    });
+    document.body.appendChild(fileInput);
+  }
+  // Mismo método de compresión que usa la app para sus imágenes (max 1100px, JPEG 0.82)
+  function comprimir(file, cb) {
+    var img = new Image(), url = URL.createObjectURL(file);
+    img.onload = function () {
+      var max = 1100, w = img.width, h = img.height, sc = Math.min(1, max / Math.max(w, h));
+      var c = document.createElement('canvas');
+      c.width = Math.round(w * sc); c.height = Math.round(h * sc);
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(url);
+      try { cb(c.toDataURL('image/jpeg', 0.82)); } catch (e) { cb(''); }
+    };
+    img.onerror = function () { URL.revokeObjectURL(url); alert('No se pudo leer la imagen.'); };
+    img.src = url;
+  }
+  // Repinta la portada de una tarjeta y relanza su animación de entrada
+  function pintarPortada(id) {
+    var el = document.querySelector('#fc-herr .fch-card[data-id="' + id + '"]');
+    if (!el) return;
+    var cover = el.querySelector('.fch-cover');
+    var data = getImg(id);
+    if (data) { cover.style.backgroundImage = 'url("' + data + '")'; cover.classList.remove('fch-nofoto'); }
+    else { cover.style.backgroundImage = ''; cover.classList.add('fch-nofoto'); }
+    el.classList.remove('fch-vis'); void el.offsetWidth; el.classList.add('fch-vis');
+  }
+
   /* ── Sección con las tarjetas ── */
   function render() {
     if (document.getElementById('fc-herr')) return true;
     var host = document.getElementById('servicios');
     if (!host) return false;
+    ensureInput();
 
     var sec = document.createElement('section');
     sec.id = 'fc-herr';
     var cardsHTML = CARDS.map(function (c) {
-      var badge = c.credito ? '<span class="fch-badge">✦ ' + c.gratis + ' créditos gratis</span>' : '';
+      var img = getImg(c.id);
+      var badge = c.credito ? '<span class="fch-badge">✦ ' + c.gratis + ' créditos gratis</span>' : '<span class="fch-badge">✦ Acceso libre</span>';
       return '<div class="fch-card" data-id="' + c.id + '">' +
-               '<div class="fch-glow"></div>' + badge +
+               '<div class="fch-cover' + (img ? '' : ' fch-nofoto') + '"' + (img ? ' style="background-image:url(&quot;' + img + '&quot;)"' : '') + '></div>' +
+               '<div class="fch-scrim"></div><div class="fch-shine"></div>' + badge +
+               '<div class="fch-adminimg"><button type="button" data-act="img" title="Cambiar imagen">🖼️</button></div>' +
                '<div class="fch-body">' +
                  '<div class="fch-ic">' + c.icon + '</div>' +
                  '<h3>' + c.titulo + '</h3>' +
                  '<p>' + c.desc + '</p>' +
-                 '<span class="fch-go">Abrir ↗</span>' +
+                 '<div class="fch-acts">' +
+                   '<button type="button" class="fch-open" data-act="open">Abrir ↗</button>' +
+                   '<button type="button" class="fch-say" data-act="say">🔊 ¿Para qué sirve?</button>' +
+                 '</div>' +
                '</div>' +
              '</div>';
     }).join('');
@@ -138,21 +238,30 @@
 
     host.parentNode.insertBefore(sec, host.nextSibling);
 
-    // abrir bloque al pulsar la tarjeta
+    // interacción por tarjeta
     Array.prototype.forEach.call(sec.querySelectorAll('.fch-card'), function (el) {
-      el.addEventListener('click', function () { abrir(el.getAttribute('data-id')); });
+      var id = el.getAttribute('data-id');
+      el.addEventListener('click', function (ev) {
+        var act = ev.target.getAttribute('data-act');
+        if (act === 'img') { ev.stopPropagation(); pendingCardId = id; fileInput.click(); return; }
+        if (act === 'say') { ev.stopPropagation(); decir(id); return; }
+        abrir(id);        // clic en la tarjeta = abrir + audio
+      });
     });
-    // editar precio (solo admin)
     var pb = sec.querySelector('#fch-precio-btn');
     if (pb) pb.addEventListener('click', function () {
       var t = prompt('Precio / mensaje que verá la clienta al quedarse sin créditos:', getPrecio());
       if (t !== null) { setPrecio(t.trim()); alert('✓ Precio actualizado en este dispositivo.'); }
     });
 
-    // animación de entrada en cascada
     animar(sec);
     syncAdmin();
     return true;
+  }
+
+  function decir(id) {
+    var c = CARDS.filter(function (x) { return x.id === id; })[0];
+    if (c) hablar(c.audio);
   }
 
   function animar(sec) {
@@ -165,7 +274,7 @@
       ents.forEach(function (e) {
         if (!e.isIntersecting) return;
         var i = +(e.target.getAttribute('data-k') || 0);
-        e.target.style.animationDelay = (i * 110) + 'ms';
+        e.target.style.animationDelay = (i * 120) + 'ms';
         e.target.classList.add('fch-vis');
         io.unobserve(e.target);
       });
@@ -183,6 +292,7 @@
     modal.innerHTML =
       '<div id="fch-bar">' +
         '<span class="fch-t" id="fch-title"></span>' +
+        '<button id="fch-say2" type="button">🔊 Audio</button>' +
         '<span id="fch-cr" hidden></span>' +
         '<button id="fch-x" type="button" aria-label="Cerrar">×</button>' +
       '</div>' +
@@ -201,6 +311,7 @@
     barCr  = modal.querySelector('#fch-cr');
     barT   = modal.querySelector('#fch-title');
     modal.querySelector('#fch-x').addEventListener('click', cerrar);
+    modal.querySelector('#fch-say2').addEventListener('click', function () { if (actual) hablar(actual.audio); });
   }
 
   function abrir(id) {
@@ -209,22 +320,22 @@
     buildModal();
     actual = c;
     barT.textContent = c.titulo;
-    // badge de saldo
     if (c.credito) { barCr.hidden = false; pintarSaldo(); } else { barCr.hidden = true; }
-    // aviso de bloqueo
     bloqueo.classList.remove('on');
     modal.querySelector('#fch-block-msg').textContent = getPrecio();
     modal.querySelector('#fch-wa').href = waLink(c.titulo);
-    // cargar bloque
     frame.src = c.src;
     frame.onload = function () { if (c.credito) enviarSaldo(); };
     modal.classList.add('abierto');
     document.documentElement.style.overflow = 'hidden';
     if (c.credito && getSaldo(c) <= 0) mostrarBloqueo();
+    // AUDIO automático de bienvenida (el clic es el gesto que lo permite)
+    hablar(c.audio);
   }
 
   function cerrar() {
     if (!modal) return;
+    callarVoz();
     modal.classList.remove('abierto');
     try { frame.removeAttribute('src'); } catch (e) {}
     document.documentElement.style.overflow = '';
@@ -272,7 +383,7 @@
     if (e.key === 'Escape' && modal && modal.classList.contains('abierto')) cerrar();
   });
 
-  /* ── Modo administradora: mostrar el editor de precio ── */
+  /* ── Modo administradora: mostrar controles internos ── */
   function syncAdmin() {
     try { document.body.classList.toggle('fch-admin-on', !!window.FC_ADMIN); } catch (e) {}
   }
