@@ -29,9 +29,10 @@
 
   var ORO  = '#C5A059';
   var WA   = '34604822265';                                   // WhatsApp de Fátima
-  // URL REAL de los bloques (GitHub Pages). El dominio "aprendizajefatima..."
-  // no existe; los bloques se publican bajo github.io/<repo>/.
-  var BASE = 'https://fatimahairstudio082-cpu.github.io/aprendizajefatima.fatimahairstudio082.com/';
+  // Los bloques viven DENTRO de este mismo repositorio, en la carpeta /pro/
+  // (con todos sus ayudantes b6_*.js y su propio support.js). Así son
+  // autónomos, mismo origen, y siempre cargan.
+  var BASE = './pro/';
 
   var CARDS = [
     { id: 'b6', icon: '🛠️', titulo: 'Herramientas Pro',
