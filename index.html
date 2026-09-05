@@ -1131,8 +1131,9 @@ class Component extends DCLogic {
       {label:'📅 Agendar', q:'agendar cita'},
       {label:'💳 Créditos', q:'creditos'}
     ].map(g => ({label:g.label, onClick:() => this.askPreset(g.q)}));
-    // Sin créditos: chip directo a WhatsApp para pedir la recarga a Fátima.
-    if (s.sinCreditos) chatSugs.push({label:'📲 Necesito créditos', onClick:() => this.waCreditos()});
+    // Chip directo a WhatsApp para pedir la recarga a Fátima (siempre disponible,
+    // porque la respuesta de créditos invita a pulsarlo aunque aún queden créditos).
+    chatSugs.push({label:'📲 Necesito créditos', onClick:() => this.waCreditos()});
 
     return {
       chatItems, chatSugs,
