@@ -24,6 +24,31 @@
   var CLAVE = 'eu_voz_v1';
   var SS = window.speechSynthesis || null;
 
+  /* Codificador WAV (PCM16). Se expone SOLO si la página no lo trae ya, para
+     que B6_VOZ_GRATIS.capturar() (voz de Google por micrófono) funcione también
+     en Estudio Universal, que no incluía este ayudante. Aditivo y guardado. */
+  if (typeof window.audioBufferToWav !== 'function') {
+    window.audioBufferToWav = function (buffer) {
+      var nCh = buffer.numberOfChannels, sr = buffer.sampleRate, n = buffer.length;
+      var canales = [], i, ch;
+      for (ch = 0; ch < nCh; ch++) canales.push(buffer.getChannelData(ch));
+      var bytesMuestra = 2, bloque = nCh * bytesMuestra;
+      var datos = n * bloque, buf = new ArrayBuffer(44 + datos), v = new DataView(buf);
+      function txt(off, s) { for (var k = 0; k < s.length; k++) v.setUint8(off + k, s.charCodeAt(k)); }
+      txt(0, 'RIFF'); v.setUint32(4, 36 + datos, true); txt(8, 'WAVE');
+      txt(12, 'fmt '); v.setUint32(16, 16, true); v.setUint16(20, 1, true);
+      v.setUint16(22, nCh, true); v.setUint32(24, sr, true);
+      v.setUint32(28, sr * bloque, true); v.setUint16(32, bloque, true);
+      v.setUint16(34, 8 * bytesMuestra, true); txt(36, 'data'); v.setUint32(40, datos, true);
+      var off = 44;
+      for (i = 0; i < n; i++) for (ch = 0; ch < nCh; ch++) {
+        var s = Math.max(-1, Math.min(1, canales[ch][i]));
+        v.setInt16(off, s < 0 ? s * 0x8000 : s * 0x7FFF, true); off += 2;
+      }
+      return new Blob([v], { type: 'audio/wav' });
+    };
+  }
+
   var ajustes = { voz: '', velocidad: 1, tono: 1 };
   try {
     var g = JSON.parse(localStorage.getItem(CLAVE) || '{}');
@@ -231,6 +256,44 @@
     return '';
   }
 
+  /* Respaldo para móvil: capta la voz de Google por el micrófono y la
+     devuelve como pista de audio real, lista para incrustar en el vídeo.
+     Solo se usa cuando se pidió «meter la voz de Google» y el navegador no
+     tiene getDisplayMedia (compartir sonido de pestaña). No toca ninguna de
+     las otras vías (voz grabada / micrófono en directo). */
+  function capturarGooglePorMic() {
+    var AC = window.AudioContext || window.webkitAudioContext;
+    if (!window.B6_VOZ_GRATIS || !window.B6_VOZ_GRATIS.disponible() || !AC) {
+      vozB6.nota = 'Para meter la voz de Google en el móvil hay que captarla por el micrófono y este navegador no puede. Graba tu voz con 🎙, narra en directo, o hazlo desde el ordenador.';
+      return Promise.resolve(null);
+    }
+    var texto = (vozB6.guion || []).map(function (p) { return p && p.texto ? p.texto : ''; })
+      .filter(function (x) { return x; }).join('. ').trim();
+    if (!texto) { vozB6.nota = 'Escribe primero la narración.'; return Promise.resolve(null); }
+    return window.B6_VOZ_GRATIS.capturar({
+      texto: texto, vel: ajustes.velocidad, tono: ajustes.tono,
+      aviso: function (m) { vozB6.nota = m; avisarVoz(); }
+    }).then(function (r) {
+      var url = URL.createObjectURL(r.blob);
+      var ac = new AC();
+      var dest = ac.createMediaStreamDestination();
+      var a = new Audio(url); a.crossOrigin = 'anonymous';
+      try { ac.createMediaElementSource(a).connect(dest); } catch (e) { }
+      vozB6.nota = '';
+      return {
+        track: dest.stream.getAudioTracks()[0], directo: false,
+        empezar: function () {
+          if (ac.state === 'suspended') ac.resume().catch(function () { });
+          a.play().catch(function () { });
+        },
+        parar: function () { try { a.pause(); } catch (e) { } try { URL.revokeObjectURL(url); } catch (e) { } }
+      };
+    }).catch(function (e) {
+      vozB6.nota = (e && e.message) ? e.message : 'No se pudo captar la voz de Google.';
+      return null;
+    });
+  }
+
   /* Devuelve { track, empezar, directo } o null. La pista se conecta al
      grabador ANTES de arrancar; empezar() se llama cuando el grabador ya
      está en marcha, para que la primera palabra no se pierda. */
@@ -243,9 +306,12 @@
        micrófono y sin ruido de la habitación. Hay que compartir «esta
        pestaña» y marcar la casilla de audio. */
     if (vozB6.pestana) {
+      /* En el móvil (iPhone/Android) no existe getDisplayMedia, así que no se
+         puede compartir el sonido de la pestaña. Respaldo: captar la voz de
+         Google por el micrófono (suena por el altavoz) y montarla como pista
+         real dentro del vídeo. Reutiliza B6_VOZ_GRATIS de b6_voz_video_gratis.js. */
       if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
-        vozB6.nota = 'Este navegador no deja capturar el sonido de la pestaña.';
-        return Promise.resolve(null);
+        return capturarGooglePorMic();
       }
       return navigator.mediaDevices.getDisplayMedia({ video: true, audio: true }).then(function (st) {
         var at = (st.getAudioTracks() || [])[0];
@@ -395,12 +461,17 @@
     },
     resumen: function () {
       var n = clavesConAudio().length, t = (vozB6.guion || []).length;
-      if (vozB6.pestana) return 'La voz de Google entrará en el archivo: al grabar te pedirá compartir «Esta pestaña» con su audio.';
+      var hayPantalla = !!(navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia);
+      if (vozB6.pestana) return hayPantalla
+        ? 'La voz de Google entrará en el archivo: al grabar te pedirá compartir «Esta pestaña» con su audio.'
+        : 'La voz de Google entrará en el archivo: al grabar se captará por el micrófono, así que sube el volumen del altavoz y no uses auriculares.';
       if (vozB6.vivo) return 'Narrarás en directo: tu micrófono se graba dentro del vídeo.';
       if (grabando()) return 'Grabando tu voz… vuelve a pulsar para parar.';
       if (sueltoHay() && !n) return 'Tienes tu toma grabada: el vídeo se descarga con esa voz dentro.';
       if (!t) return 'Escribe la narración y elige cómo quieres que suene.';
-      if (!n) return 'De momento el vídeo saldría con la narración rotulada. Graba tu voz, o mete la de Google compartiendo el sonido de la pestaña.';
+      if (!n) return hayPantalla
+        ? 'De momento el vídeo saldría con la narración rotulada. Graba tu voz, o mete la de Google compartiendo el sonido de la pestaña.'
+        : 'De momento el vídeo saldría con la narración rotulada. Graba tu voz con 🎙, o activa «meter la voz de Google» (se capta por el micrófono con el altavoz alto).';
       if (n < t) return n + ' de ' + t + ' pasos con tu voz. Los que faltan salen en silencio con su rótulo.';
       return 'Los ' + t + ' pasos tienen tu voz: el vídeo se descarga con la narración dentro.';
     },
