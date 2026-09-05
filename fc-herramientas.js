@@ -45,9 +45,10 @@
              'diseñadores: aquí lo haces tú misma en minutos. Tienes créditos gratis para probar; cuando quieras seguir, escríbeme por WhatsApp.' },
     { id: 'eu', icon: '🎨', titulo: 'Estudio Universal',
       desc: 'Folletos · trípticos · troquelados · vídeo · QR.',
-      // Estudio Universal NO reporta cada acción (bloque autónomo), así que
-      // cobra créditos AL ABRIR (abreCosto). Mismo monedero y compra que Herramientas Pro.
-      src: BASE + 'Estudio_universal.html', credito: true, abreCosto: 2,
+      // Estudio Universal ahora reporta cada DESCARGA (5 créditos) desde
+      // eu_creditos.js por postMessage, igual que Herramientas Pro. Por eso NO
+      // cobra al abrir (abreCosto:0). Mismo monedero y compra que Herramientas Pro.
+      src: BASE + 'Estudio_universal.html', credito: true, abreCosto: 0,
       audio: 'Estudio Universal es tu taller de diseño e imprenta. Resuelve el problema de crear material profesional sin saber diseño: ' +
              'haces trípticos, volantes, carruseles, guías en tres dimensiones, láminas de exposición, estudio de vídeo y tu propio ' +
              'código QR sin dar tus datos. Descargas todo listo para imprenta en PDF con sangrado, PNG o JPG, o grabas un vídeo narrado. ' +
@@ -466,8 +467,14 @@
     var cd = modal.querySelector('#fch-code');
     cd.textContent = (central && clienteCodigo) ? ('Tu código: ' + clienteCodigo) : '';
     bloqueo.classList.add('on');
+    // Avisar al chatbox flotante (index.html) para que explique el precio y
+    // ofrezca escribir a Fátima. Aditivo: si nadie escucha, no pasa nada.
+    try { window.dispatchEvent(new CustomEvent('fc-sin-creditos', { detail: { titulo: titulo } })); } catch (e) {}
   }
-  function ocultarBloqueo() { if (bloqueo) bloqueo.classList.remove('on'); }
+  function ocultarBloqueo() {
+    if (bloqueo) bloqueo.classList.remove('on');
+    try { window.dispatchEvent(new CustomEvent('fc-con-creditos')); } catch (e) {}
+  }
 
   window.addEventListener('message', function (e) {
     var d = e.data || {};
