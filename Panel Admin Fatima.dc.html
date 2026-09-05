@@ -3,18 +3,18 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<script src="./support.js"></script>
+<script src="./support.js?v=3"></script>
 </head>
 <body>
 <x-dc>
 <helmet>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700&display=swap" rel="stylesheet">
-<script src="./fc-data.js"></script>
+<script src="./fc-data.js?v=3"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script src="./fc-firebase.js"></script>
-<script src="./fc-admin-pro.js"></script>
+<script src="./fc-firebase.js?v=3"></script>
+<script src="./fc-admin-pro.js?v=3"></script>
 <style>
 body{margin:0;background:#060606;font-family:'Montserrat',sans-serif;-webkit-font-smoothing:antialiased;}
 input::placeholder,textarea::placeholder{color:rgba(255,255,255,0.3);}
@@ -35,7 +35,7 @@ input::placeholder,textarea::placeholder{color:rgba(255,255,255,0.3);}
       <p style="color:rgba(255,255,255,0.5);font-size:0.82rem;margin:0 0 24px;">Solo Fátima Caldea · introduce tu clave</p>
       <input id="adm-pin" type="password" inputmode="numeric" placeholder="Clave" onKeyDown="{{ onPinKey }}" class="adm-in" style="max-width:220px;text-align:center;letter-spacing:6px;font-size:1.1rem;margin-bottom:14px;">
       <button onClick="{{ onUnlock }}" style="background:#C5A059;color:#000;border:none;padding:13px 30px;border-radius:50px;font-weight:700;font-size:0.86rem;cursor:pointer;font-family:'Montserrat',sans-serif;">Entrar</button>
-      <a href="Fatima Caldea App.dc.html" style="margin-top:22px;color:rgba(255,255,255,0.4);font-size:0.74rem;text-decoration:none;">← Volver a la app</a>
+      <a href="index.html?v=3" style="margin-top:22px;color:rgba(255,255,255,0.4);font-size:0.74rem;text-decoration:none;">← Volver a la app</a>
     </div>
   </sc-if>
 
@@ -49,7 +49,7 @@ input::placeholder,textarea::placeholder{color:rgba(255,255,255,0.3);}
           <div style="font-family:'Cormorant Garamond',serif;font-size:1.25rem;color:#C5A059;letter-spacing:1px;line-height:1;">Panel Admin</div>
           <div style="font-size:0.6rem;color:rgba(255,255,255,0.45);letter-spacing:1px;margin-top:3px;">FÁTIMA CALDEA · PRIVADO</div>
         </div>
-        <a href="Fatima Caldea App.dc.html" target="_blank" style="text-decoration:none;background:transparent;border:1px solid rgba(197,160,89,0.4);color:#C5A059;font-size:0.66rem;font-weight:700;padding:8px 13px;border-radius:50px;">👁 Ver app</a>
+        <a href="index.html?v=3" target="_blank" style="text-decoration:none;background:transparent;border:1px solid rgba(197,160,89,0.4);color:#C5A059;font-size:0.66rem;font-weight:700;padding:8px 13px;border-radius:50px;">👁 Ver app</a>
       </div>
 
       <!-- TABS -->
