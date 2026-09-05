@@ -522,6 +522,9 @@
   window.addEventListener('fc-admin', syncAdmin);
 
   /* ── Arranque: esperar a que el runtime pinte #servicios ── */
+  // Permitir abrir una herramienta desde fuera (p. ej. el chat): window.FC_ABRIR('b6'|'eu')
+  window.FC_ABRIR = function (id) { try { abrir(id); } catch (e) {} };
+
   function arrancar() {
     css();
     initCentral();          // intenta crédito central (Firebase); si no, respaldo local

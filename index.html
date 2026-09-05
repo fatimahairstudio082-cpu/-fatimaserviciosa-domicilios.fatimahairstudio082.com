@@ -1096,12 +1096,17 @@ class Component extends DCLogic {
       bubbleRadius: m.from === 'bot' ? '16px 16px 16px 4px' : '16px 16px 4px 16px',
       onReplay:() => this.speak(m.text)
     }));
+    const _waNum = String(this.props.whatsapp || '34604822265').replace(/\D/g, '');
+    const _waCreditos = 'https://wa.me/' + _waNum + '?text=' + encodeURIComponent('Hola Fátima 👋 Quiero comprar créditos para usar tus herramientas.');
+    const _abrirHerr = (id) => { try { if (window.FC_ABRIR) window.FC_ABRIR(id); } catch(e){} };
     const chatSugs = [
-      {label:'✂️ Servicios', q:'servicios'},
-      {label:'💰 Precios', q:'precios'},
-      {label:'📍 Zonas', q:'zona domicilio'},
-      {label:'📅 Agendar', q:'agendar cita'}
-    ].map(g => ({label:g.label, onClick:() => this.askPreset(g.q)}));
+      {label:'🛠️ Herramientas Pro', onClick:() => _abrirHerr('b6')},
+      {label:'🎨 Estudio Universal', onClick:() => _abrirHerr('eu')},
+      {label:'💳 Comprar créditos', onClick:() => { try { window.open(_waCreditos, '_blank'); } catch(e){} }},
+      {label:'✂️ Servicios', onClick:() => this.askPreset('servicios')},
+      {label:'💰 Precios', onClick:() => this.askPreset('precios')},
+      {label:'📅 Agendar', onClick:() => this.askPreset('agendar cita')}
+    ];
 
     return {
       chatItems, chatSugs,
