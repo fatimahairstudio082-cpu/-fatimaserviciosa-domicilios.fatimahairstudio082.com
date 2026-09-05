@@ -569,6 +569,7 @@ class Component extends DCLogic {
       videoLb:null,
       chatOpen:false,
       voiceOn:true,
+      sinCreditos:false,
       chat:[{from:'bot', text:GREETING}]
     };
   }
@@ -606,7 +607,8 @@ class Component extends DCLogic {
     const t = this._norm(q);
     const has = (...ks) => ks.some(k => t.includes(k));
     if (has('herramienta','herramientas pro','maletin')) return 'Herramientas Pro es tu maletín digital: Protección Digital, optimizador de vídeo y audio, tarjeta segura, CV y cartas, tu tarjeta de presentación, recibos, flyers y folletos profesionales. Resuelve el problema de pagar por varias apps o diseñadores: lo haces tú misma en minutos. Tienes créditos gratis para probar; cuando quieras seguir, te contacto por WhatsApp.';
-    if (has('estudio universal','estudio','triptico','folleto','volante','qr','imprenta')) return 'Estudio Universal es tu taller de diseño e imprenta: trípticos, volantes, carruseles, guías en 3D, láminas, estudio de vídeo y tu propio código QR sin dar tus datos. Descargas todo listo para imprenta en PDF con sangrado, PNG o JPG, o grabas un vídeo narrado. Es de acceso libre.';
+    if (has('credito','creditos','crédito','créditos','recarg','sin credito','se acabaron','se acabo','agotaron','agotado')) return 'Las Herramientas Pro y el Estudio Universal traen 50 créditos gratis para que pruebes. En Estudio Universal cada descarga usa 5 créditos. Cuando se te acaben, recargas fácil: 30 créditos por 6€, 60 por 10€ o 150 por 20€. Pulsa «📲 Necesito créditos» y te recargo enseguida por WhatsApp.';
+    if (has('estudio universal','estudio','triptico','folleto','volante','qr','imprenta')) return 'Estudio Universal es tu taller de diseño e imprenta: trípticos, volantes, carruseles, guías en 3D, láminas, estudio de vídeo y tu propio código QR sin dar tus datos. Descargas todo listo para imprenta en PDF con sangrado, PNG o JPG, o grabas un vídeo narrado. Trae 50 créditos gratis para probar; cada descarga usa 5 créditos y, cuando se acaben, me escribes por WhatsApp para recargar.';
     if (has('hola','buenas','buenos dias','buenas tardes','saludos')) return '¡Hola! Soy Fátima, estilista y colorimetrista a domicilio. ¿En qué puedo ayudarte? Puedo contarte sobre mis servicios, zonas o cómo agendar tu cita.';
     if (has('servicio','que haces','que ofreces','que hace','lista')) return 'Ofrezco tintes y colorimetría, corrección de color, mechas y balayage, cortes de dama y caballero, extensiones, pestañas, tratamientos de hidratación y también diseño de páginas web. ¿Cuál te interesa?';
     if (has('precio','cuesta','cuanto','vale','tarifa','presupuesto','coste')) return 'El precio depende del servicio y del largo de tu cabello. Cuéntame qué necesitas y te doy un presupuesto personalizado por WhatsApp, sin compromiso.';
@@ -655,6 +657,22 @@ class Component extends DCLogic {
     this.setState({voiceOn:on});
     if (!on){ try { window.speechSynthesis.cancel(); } catch(e){} }
   }
+  // Abre WhatsApp con el mensaje de créditos para que a Fátima le llegue.
+  waCreditos(){
+    const wa = String(this.props.whatsapp || '34604822265').replace(/\D/g, '');
+    const msg = 'Hola Fátima 👋 Necesito créditos para seguir usando tus herramientas. ¿Me recargas, por favor?';
+    try { window.open('https://wa.me/' + wa + '?text=' + encodeURIComponent(msg), '_blank'); } catch(e){}
+  }
+  // Aviso proactivo cuando el hub de herramientas se queda sin créditos.
+  avisoSinCreditos(){
+    if (this.state.sinCreditos) return;   // ya avisado; no reabrir en cada refresco del saldo
+    const txt = 'Se te acabaron los créditos de prueba. Cada recarga es sencilla: 30 créditos por 6€, 60 por 10€ o 150 por 20€. Pulsa «📲 Necesito créditos» y te recargo enseguida por WhatsApp.';
+    this.setState(s => ({
+      sinCreditos:true,
+      chatOpen:true,
+      chat: (s.chat.length && s.chat[s.chat.length-1].text === txt) ? s.chat : [...s.chat, {from:'bot', text:txt}]
+    }), () => { this._scrollChat(); this.speak(txt); });
+  }
 
   _load(k, def){
     try { const r = localStorage.getItem(k); return r ? JSON.parse(r) : def; }
@@ -695,6 +713,14 @@ class Component extends DCLogic {
       });
     };
     window.addEventListener('focus', this._onFocus);
+    // El hub de herramientas (fc-herramientas.js) avisa aquí cuando una clienta
+    // se queda sin créditos, para que el chatbox le explique el precio y le
+    // ofrezca escribir a Fátima. Aditivo: si el evento nunca llega, nada cambia.
+    this._onSinCreditos = () => this.avisoSinCreditos();
+    window.addEventListener('fc-sin-creditos', this._onSinCreditos);
+    // Al recargar (el hub oculta su bloqueo) se rearma el aviso para la próxima vez.
+    this._onConCreditos = () => { if (this.state.sinCreditos) this.setState({sinCreditos:false}); };
+    window.addEventListener('fc-con-creditos', this._onConCreditos);
     // Firebase: cargar los bloques dinámicos (Amway/HTML) que la administradora
     // haya publicado, y registrar la visita (ciudad aproximada) para su panel.
     try {
@@ -707,6 +733,8 @@ class Component extends DCLogic {
   componentWillUnmount(){
     if (this._onScroll) window.removeEventListener('scroll', this._onScroll);
     if (this._onFocus) window.removeEventListener('focus', this._onFocus);
+    if (this._onSinCreditos) window.removeEventListener('fc-sin-creditos', this._onSinCreditos);
+    if (this._onConCreditos) window.removeEventListener('fc-con-creditos', this._onConCreditos);
     if (this._unsubBloques){ this._unsubBloques(); this._unsubBloques=null; }
   }
 
@@ -1100,8 +1128,11 @@ class Component extends DCLogic {
       {label:'✂️ Servicios', q:'servicios'},
       {label:'💰 Precios', q:'precios'},
       {label:'📍 Zonas', q:'zona domicilio'},
-      {label:'📅 Agendar', q:'agendar cita'}
+      {label:'📅 Agendar', q:'agendar cita'},
+      {label:'💳 Créditos', q:'creditos'}
     ].map(g => ({label:g.label, onClick:() => this.askPreset(g.q)}));
+    // Sin créditos: chip directo a WhatsApp para pedir la recarga a Fátima.
+    if (s.sinCreditos) chatSugs.push({label:'📲 Necesito créditos', onClick:() => this.waCreditos()});
 
     return {
       chatItems, chatSugs,
