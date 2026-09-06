@@ -281,11 +281,16 @@
 
   /* ── Sección con las tarjetas ── */
   function render() {
-    if (document.getElementById('fc-herr')) return true;
+    var ya = document.getElementById('fc-herr');
+    if (ya && !(ya.closest && ya.closest('x-dc'))) return true;   // ya montada en el DOM real
     // ARRIBA: justo después del hero (#inicio), en el área del botón
     // "Visita Fátima Hair Studio" — no al final de la página.
     var host = document.getElementById('inicio');
     if (!host) return false;
+    // El runtime (support.js) sustituye <x-dc> por #dc-root al montar: todo lo que
+    // se inyecte dentro de la plantilla se pierde en ese reemplazo. Esperamos al
+    // DOM ya pintado para no montar sobre un bloque condenado.
+    if (host.closest && host.closest('x-dc')) return false;
     ensureInput();
 
     var sec = document.createElement('section');
@@ -539,9 +544,12 @@
     if (fbListo() && window.FCF.watchHerrCfg) {
       try { window.FCF.watchHerrCfg(function (data, err) { if (err) return; herrCfg = data || {}; aplicarCfg(); }); } catch (e) {}
     }
-    if (render()) return;
+    render();
+    // Vigilante: el runtime puede pintar tarde (React viene por red) y puede
+    // repintar. Si la sección no está en el DOM real, se reinyecta.
     var t = 0, iv = setInterval(function () {
-      if (render() || (t += 1) > 40) clearInterval(iv);   // reintenta ~12s
+      render();
+      if ((t += 1) > 200) clearInterval(iv);   // vigila ~60s
     }, 300);
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', arrancar);
