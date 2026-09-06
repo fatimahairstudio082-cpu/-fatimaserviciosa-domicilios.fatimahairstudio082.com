@@ -443,7 +443,7 @@ select,input[type=text]{background:var(--bg3);border:1px solid var(--bd);color:v
         <button class="btn btn-ok" onclick="tpDownload('jpg')">⬇ Descargar JPG + PDF</button>
         <button class="btn" onclick="tpDownload('png')">⬇ PNG</button>
       </div>
-      <div style="font-size:9px;color:var(--tx2);text-align:center;margin-top:4px">La descarga cuesta 2 créditos · imprime en tamaño tarjeta (9×5,5 cm)</div>
+      <div style="font-size:9px;color:var(--tx2);text-align:center;margin-top:4px">La descarga cuesta 5 créditos · imprime en tamaño tarjeta (9×5,5 cm)</div>
       <div id="tpSt"></div>
       <div class="sep"></div>
       <div style="font-size:10px;color:var(--ac2);font-weight:700;margin-bottom:6px">🎬 Tarjeta animada (video con música)</div>
@@ -481,7 +481,7 @@ select,input[type=text]{background:var(--bg3);border:1px solid var(--bd);color:v
       </div>
       <div class="row"><span class="lbl">Duración (seg)</span><input type="number" id="tpDur" value="6" min="2" max="20" step="1" style="max-width:90px;background:var(--bg3);border:1px solid var(--bd);color:var(--tx);border-radius:5px;padding:4px 8px;font-size:11px"></div>
       <div class="row" style="justify-content:center"><button class="btn" id="tpVidBtn" onclick="tpStartVideo()">🎬 Grabar video</button></div>
-      <div style="font-size:9px;color:var(--tx2);text-align:center;margin-top:2px">El video cuesta 2 créditos · sale en WebM (va bien en Android; en iPhone puede no reproducirse en algunas apps)</div>
+      <div style="font-size:9px;color:var(--tx2);text-align:center;margin-top:2px">El video cuesta 5 créditos · sale en WebM (va bien en Android; en iPhone puede no reproducirse en algunas apps)</div>
       <div id="tpVidSt"></div>
       <div id="tpQrHolder" style="display:none"></div>
     </div>
@@ -548,7 +548,7 @@ select,input[type=text]{background:var(--bg3);border:1px solid var(--bd);color:v
       <div class="row" style="margin-top:12px;justify-content:center;gap:10px">
         <button class="btn btn-ok" onclick="rcDownloadPDF()">⬇ Descargar PDF</button>
       </div>
-      <div style="font-size:9px;color:var(--tx2);text-align:center;margin-top:4px">La descarga cuesta 2 créditos · PDF de texto seleccionable</div>
+      <div style="font-size:9px;color:var(--tx2);text-align:center;margin-top:4px">La descarga cuesta 5 créditos · PDF de texto seleccionable</div>
       <div id="rcSt"></div>
     </div>
   </div>
@@ -618,7 +618,7 @@ select,input[type=text]{background:var(--bg3);border:1px solid var(--bd);color:v
         <canvas id="flCanvas" width="1080" height="1080" style="max-width:100%;max-height:66vh;border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,.5)"></canvas>
       </div>
       <div class="row" style="margin-top:12px;justify-content:center"><button class="btn btn-ok" onclick="flDownload()">⬇ Descargar JPG</button></div>
-      <div style="font-size:9px;color:var(--tx2);text-align:center;margin-top:4px">La imagen cuesta 2 créditos · tamaño exacto para cada red</div>
+      <div style="font-size:9px;color:var(--tx2);text-align:center;margin-top:4px">La imagen cuesta 5 créditos · tamaño exacto para cada red</div>
       <div class="sep"></div>
       <div style="font-size:10px;color:var(--ac2);font-weight:700;margin-bottom:6px">🎬 Video animado (con sonido)</div>
       <div class="row"><span class="lbl">Efecto de letras</span>
@@ -671,7 +671,7 @@ select,input[type=text]{background:var(--bg3);border:1px solid var(--bd);color:v
       <div class="row" id="flAudioRow" style="display:none"><span class="lbl">Archivo audio</span><input type="file" id="flAudio" accept="audio/*" onchange="flAudioFile(event)" style="flex:1;background:var(--bg3);border:1px solid var(--bd);border-radius:5px;padding:4px;color:var(--tx);font-size:10px"></div>
       <div class="row"><span class="lbl">Duración (seg)</span><input type="number" id="flDur" value="6" min="2" max="20" step="1" style="max-width:90px;background:var(--bg3);border:1px solid var(--bd);color:var(--tx);border-radius:5px;padding:4px 8px;font-size:11px"><span style="font-size:9px;color:var(--tx2)">música/sin sonido · micrófono/voz IA graba hasta terminar</span></div>
       <div class="row" style="justify-content:center"><button class="btn" id="flVidBtn" onclick="flStartVideo()">🎬 Grabar video</button></div>
-      <div style="font-size:9px;color:var(--tx2);text-align:center;margin-top:2px">El video cuesta 2 créditos · sale en WebM (va bien en Android; en iPhone puede no reproducirse en algunas apps)</div>
+      <div style="font-size:9px;color:var(--tx2);text-align:center;margin-top:2px">El video cuesta 5 créditos · sale en WebM (va bien en Android; en iPhone puede no reproducirse en algunas apps)</div>
       <div id="flSt"></div>
     </div>
   </div>
@@ -992,13 +992,13 @@ function multiDownloadPanel(blobs,origSize,baseName){
   let btns=fmts.map(f=>{const b=blobs[f.key];if(!b)return'';const sz=fmt(b.size);const pct=origSize?Math.round((1-b.size/origSize)*100):0;const badge=pct>0?`<span style="color:var(--ok);font-size:7px">-${pct}%</span>`:'';return`<div class="dl-btn-fmt" onclick="dlFmt('${f.key}','${baseName}')"><span class="fmt-ico">${f.ico}</span><span class="fmt-lbl">${f.label} ${badge}</span><span class="fmt-sz">${sz}</span></div>`;}).join('');
   const keys=Object.keys(blobs).filter(k=>blobs[k]);
   if(keys.length>1)btns+=`<div class="dl-btn-fmt" onclick="dlZip('${baseName}')" style="border-color:var(--warn)"><span class="fmt-ico">📦</span><span class="fmt-lbl" style="color:var(--warn)">ZIP</span><span class="fmt-sz">Todo</span></div>`;
-  return`<div class="dl-multi"><div class="dl-multi-title">⬇ Descargar formato</div><div class="dl-btns">${btns}</div><div style="font-size:8px;color:var(--tx2)">💡 Tienes ${credits} créditos · 2cr por descarga</div></div>`;
+  return`<div class="dl-multi"><div class="dl-multi-title">⬇ Descargar formato</div><div class="dl-btns">${btns}</div><div style="font-size:8px;color:var(--tx2)">💡 Tienes ${credits} créditos · 5cr por descarga</div></div>`;
 }
 
 async function dlFmt(key,base){
   if(credits<=0){openCredModal();return;}
   const blob=processedBlobs[key];if(!blob)return;
-  if(!gastar(2))return;
+  if(!gastar(5))return;
   const ext={jpg:'.jpg',png:'.png',webp:'.webp',pdf:'.pdf'};
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=base+ext[key];document.body.appendChild(a);a.click();document.body.removeChild(a);
 }
@@ -1065,7 +1065,7 @@ function dibujarMarca(ctx,w,h){
 }
 async function processProtect(){
   if(!curFile){alert('Sube un archivo primero.');return;}
-  if(!gastar(2))return;
+  if(!gastar(5))return;
   const baseName=(document.getElementById('protOut')?.value||curFile.name.replace(/\.[^.]+$/,'')).replace(/\s+/g,'_')+'_protegido_'+new Date().toISOString().slice(0,10).replace(/-/g,'');
   document.getElementById('protSt').innerHTML=`<div class="st proc">⏳ Procesando...</div>`;
   if(curFile.type==='application/pdf'){
@@ -1112,7 +1112,7 @@ function renderImg(){
 }
 async function processImg(){
   if(!curFile){alert('Sube una imagen primero.');return;}
-  if(!gastar(2))return;
+  if(!gastar(5))return;
   const q=parseInt(document.getElementById('imgQ').value)/100;
   const maxW=parseInt(document.getElementById('imgR').value)||0;
   document.getElementById('imgSt').innerHTML=`<div class="st proc">⏳ Comprimiendo...</div>`;
@@ -1158,7 +1158,7 @@ function aplicarFondo(ctx,W,H){
 }
 async function processBG(){
   if(!curFile||!curFile.type.startsWith('image/')){alert('Sube una imagen primero.');return;}
-  if(!gastar(2))return;
+  if(!gastar(5))return;
   const img=new Image();img.onload=async()=>{
     const W=img.naturalWidth,H=img.naturalHeight;
     const c=document.createElement('canvas');c.width=W;c.height=H;const ctx=c.getContext('2d');
@@ -1235,7 +1235,7 @@ let qrCanvas=null;
 function genQR(){const txt=document.getElementById('qrIn').value.trim();if(!txt)return;const sz=parseInt(document.getElementById('qrSz').value);const col=document.getElementById('qrCol').value;const bg=document.getElementById('qrBg').value;const p=document.getElementById('qrPrev');p.innerHTML='<div class="prev-box"><div class="prev-title">👁️ QR</div><div id="qrDiv" style="display:flex;justify-content:center;padding:8px;background:#fff;border-radius:6px"></div></div>';try{new QRCode(document.getElementById('qrDiv'),{text:txt,width:sz,height:sz,colorDark:col,colorLight:bg,correctLevel:QRCode.CorrectLevel.H});setTimeout(()=>{qrCanvas=document.getElementById('qrDiv').querySelector('canvas')||document.getElementById('qrDiv').querySelector('img');},300);}catch(e){alert('Error QR: '+e.message);}}
 function dlQR(){
   if(!qrCanvas){alert('Genera el QR primero.');return;}
-  if(!gastar(2))return;
+  if(!gastar(5))return;
   const txt=(document.getElementById('qrIn')?.value||'qr').replace(/[^a-zA-Z0-9]/g,'_').slice(0,20);
   const fecha=new Date().toISOString().slice(0,10).replace(/-/g,'');
   const base=`QR_${txt}_${fecha}`;
@@ -1304,7 +1304,7 @@ function handleMediaFile(f){
 }
 async function processMedia(){
   if(!mediaFile){alert('Sube un archivo de vídeo o audio primero.');return;}
-  if(!gastar(2))return;
+  if(!gastar(5))return;
   const isVideo=mediaFile.type.startsWith('video/');
   const q=document.getElementById('mediaQ').value;
   const nombre=document.getElementById('mediaNombre').value||'archivo_optimizado';
@@ -1366,7 +1366,7 @@ function audioBufferToWav(buf){
   let off=44;for(let i=0;i<len;i++)for(let c=0;c<ch;c++){const s=Math.max(-1,Math.min(1,buf.getChannelData(c)[i]));view.setInt16(off,s<0?s*0x8000:s*0x7FFF,true);off+=2;}
   return new Blob([ab],{type:'audio/wav'});
 }
-function dlMedia(url,name){if(!gastar(2))return;const a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();document.body.removeChild(a);}
+function dlMedia(url,name){if(!gastar(5))return;const a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();document.body.removeChild(a);}
 
 // ══ TARJETA SEGURA ══
 let cardDigitVisible=[];let cardImgSrc=null;
@@ -1429,7 +1429,7 @@ function drawCardOverlay(ctx,W,H,soloMarca){
   if(wmTxt){ctx.save();ctx.globalAlpha=wmOp;ctx.font='bold 11px Segoe UI,Arial';ctx.fillStyle='#fff';ctx.textAlign='center';ctx.translate(W/2,H/2);ctx.rotate(-30*Math.PI/180);for(let row=-2;row<=2;row++)ctx.fillText(wmTxt,0,row*40);ctx.restore();}
 }
 function downloadCard(fmt){
-  if(!gastar(2))return;
+  if(!gastar(5))return;
   const canvas=document.getElementById('cardCanvas');
   const banco=(document.getElementById('cardBank')?.value||'tarjeta').replace(/\s+/g,'_').toLowerCase();
   const fecha=new Date().toISOString().slice(0,10).replace(/-/g,'');
@@ -1594,7 +1594,7 @@ function printCV(){
   if(document.getElementById('cvAts')?.checked){ return printCV_ATS(); }
   const docEl=document.getElementById('cvDoc');
   if(!docEl){alert('Genera el documento primero.');return;}
-  if(!gastar(2))return;
+  if(!gastar(5))return;
   const nombre=(document.getElementById('cvNombre')?.value||'cv').replace(/\s+/g,'_');
   const fecha=new Date().toISOString().slice(0,10).replace(/-/g,'');
   const base=`CV_${nombre}_${fecha}`;
@@ -1665,7 +1665,7 @@ function printCV_ATS(){
   if(!docEl || !docEl.innerText.trim()){alert('Genera el documento primero.');return;}
   const JsPDF=window.jspdf?.jsPDF||window.jsPDF;
   if(!JsPDF){alert('No se pudo cargar el generador de PDF. Reintenta en el sitio publicado.');return;}
-  if(!gastar(2))return;
+  if(!gastar(5))return;
   const nombre=(document.getElementById('cvNombre')?.value||'cv').replace(/\s+/g,'_');
   const fecha=new Date().toISOString().slice(0,10).replace(/-/g,'');
   const base=`CV_ATS_${nombre}_${fecha}`;
@@ -2400,7 +2400,7 @@ function tpDownload(fmt){
   if(tpVal('tpPlantilla')==='transparente'&&fmt==='jpg'){fmt='png';_forcedPng=true;}
   const _tgt=tpQRTarget();
   if(_tgt && !tpQRCanvas){tpRender();alert('El código QR se está generando. Espera un segundo y vuelve a pulsar Descargar.');return;}
-  if(!gastar(2))return;
+  if(!gastar(5))return;
   tpDraw();
   const canvas=document.getElementById('tpCanvas');
   const nm=(tpVal('tpNombre')||'tarjeta').replace(/\s+/g,'_').toLowerCase().slice(0,24);
@@ -2487,7 +2487,7 @@ async function tpStartVideo(){
   let recorder;
   try{recorder=new MediaRecorder(combined,{mimeType:mime,videoBitsPerSecond:5000000});}
   catch(e){abort('No se pudo iniciar la grabación: '+(e.message||e));return;}
-  if(!gastar(2)){abort();return;}
+  if(!gastar(5)){abort();return;}
   tpRec=recorder;
   const chunks=[];
   tpRec.ondataavailable=e=>{if(e.data&&e.data.size)chunks.push(e.data);};
@@ -2655,7 +2655,7 @@ function rcDownloadPDF(){
   const tipo=rcVal('rcTipo');
   const rawPagado=parseFloat(rcVal('rcPagado'))||0;
   if(!items.length&&!(tipo==='recibo'&&rawPagado>0)){alert('Añade al menos una fila al detalle (o, en un recibo, escribe el monto pagado).');return;}
-  if(!gastar(2))return;
+  if(!gastar(5))return;
   const c=rcCalc();
   const r=rcResumen(c,tipo);
   const titulo=tipo==='recibo'?'RECIBO DE PAGO':tipo==='factura'?'FACTURA':'PRESUPUESTO';
@@ -2911,7 +2911,7 @@ function flOpen(){if(!flReady){flReady=true;flInit();}else{flDraw();}}
 function flDownload(){
   const cv=document.getElementById('flCanvas'); if(!cv)return;
   if(!flVal('flTitulo')){alert('Escribe al menos el título del flyer.');return;}
-  if(!gastar(2))return;
+  if(!gastar(5))return;
   flDraw();
   const fmt=flVal('flFormato')||'cuadrado';
   const fecha=new Date().toISOString().slice(0,10).replace(/-/g,'');
@@ -3100,7 +3100,7 @@ async function flStartVideo(){
   try{recorder=new MediaRecorder(combined,{mimeType:mime,videoBitsPerSecond:6000000});}
   catch(e){abort('No se pudo iniciar la grabación: '+(e.message||e));return;}
   // cobrar SOLO cuando el grabador ya está construido con éxito
-  if(!gastar(2)){abort();return;}
+  if(!gastar(5)){abort();return;}
   flRec=recorder;
   const chunks=[];
   flRec.ondataavailable=e=>{if(e.data&&e.data.size)chunks.push(e.data);};

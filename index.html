@@ -1124,13 +1124,16 @@ class Component extends DCLogic {
       bubbleRadius: m.from === 'bot' ? '16px 16px 16px 4px' : '16px 16px 4px 16px',
       onReplay:() => this.speak(m.text)
     }));
+    const _abrirHerr = (id) => { try { if (window.FC_ABRIR) window.FC_ABRIR(id); } catch(e){} };
     const chatSugs = [
-      {label:'✂️ Servicios', q:'servicios'},
-      {label:'💰 Precios', q:'precios'},
-      {label:'📍 Zonas', q:'zona domicilio'},
-      {label:'📅 Agendar', q:'agendar cita'},
-      {label:'💳 Créditos', q:'creditos'}
-    ].map(g => ({label:g.label, onClick:() => this.askPreset(g.q)}));
+      {label:'🛠️ Herramientas Pro', onClick:() => _abrirHerr('b6')},
+      {label:'🎨 Estudio Universal', onClick:() => _abrirHerr('eu')},
+      {label:'✂️ Servicios', onClick:() => this.askPreset('servicios')},
+      {label:'💰 Precios', onClick:() => this.askPreset('precios')},
+      {label:'📍 Zonas', onClick:() => this.askPreset('zona domicilio')},
+      {label:'📅 Agendar', onClick:() => this.askPreset('agendar cita')},
+      {label:'💳 Créditos', onClick:() => this.askPreset('creditos')}
+    ];
     // Chip directo a WhatsApp para pedir la recarga a Fátima (siempre disponible,
     // porque la respuesta de créditos invita a pulsarlo aunque aún queden créditos).
     chatSugs.push({label:'📲 Necesito créditos', onClick:() => this.waCreditos()});
