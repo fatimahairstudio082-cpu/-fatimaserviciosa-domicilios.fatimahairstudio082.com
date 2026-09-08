@@ -650,25 +650,131 @@ const DIAS_PLAN    = 16;   // días de plan; los últimos 5 son de repaso
 function shuffle(a){ const b=[...a]; for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]];} return b; }
 function hoy(){ return new Date().toISOString().slice(0,10); }
 
-// TTS
+/* ── TTS ──────────────────────────────────────────────────────────────
+   La voz del móvil es frágil: se atraganta con textos largos y a veces
+   no avisa de que ha terminado, dejando la locución colgada en
+   "Leyendo pregunta…". Por eso aquí el texto se trocea en frases cortas,
+   cada tramo lleva su propia red de seguridad por tiempo, y onEnd se
+   llama SIEMPRE una vez, aunque la voz falle o no conteste.
+──────────────────────────────────────────────────────────────────────── */
+
 let ttsVelocidad = 1;
 let ttsTimeouts  = [];
+let ttsTurno     = 0;      // cada locución nueva invalida la anterior
+let ttsKeepAlive = null;
+let ttsRescates  = 0;      // veces seguidas que ha habido que desatascar la voz
+
+const TTS_MAX_CHARS = 160; // por encima de esto los motores móviles fallan
+
+// Agrupa el texto en tramos de hasta TTS_MAX_CHARS, cortando por frases.
+// Agrupar en vez de partir importa: cada tramo es una ocasión de que el
+// motor se atasque, así que una pregunta normal debe salir de una sola vez.
+function trocearTts(txt){
+  // Los dos puntos NO cortan: "Opción c: Sindicato" debe leerse de un tirón.
+  const frases = String(txt).match(/[^.;!?]+[.;!?]*/g) || [String(txt)];
+  const out = [];
+  let buf = '';
+  const empujar = () => { if(buf.trim()) out.push(buf.trim()); buf = ''; };
+
+  frases.forEach(f => {
+    f = f.trim();
+    if(!f) return;
+    while(f.length > TTS_MAX_CHARS){        // frase suelta larguísima: partir por espacios
+      empujar();
+      let corte = f.lastIndexOf(' ', TTS_MAX_CHARS);
+      if(corte < TTS_MAX_CHARS * 0.5) corte = TTS_MAX_CHARS;
+      out.push(f.slice(0, corte).trim());
+      f = f.slice(corte).trim();
+    }
+    if((buf + ' ' + f).trim().length > TTS_MAX_CHARS) empujar();
+    buf = (buf ? buf + ' ' : '') + f;
+  });
+  empujar();
+  return out.length ? out : [String(txt)];
+}
+
+function ttsKeepAliveOn(){
+  ttsKeepAliveOff();
+  ttsKeepAlive = setInterval(()=>{
+    const s = window.speechSynthesis;
+    if(!s || (!s.speaking && !s.pending)){ ttsKeepAliveOff(); return; }
+    // Solo resume(): pause() en el móvil puede dejar la voz colgada de verdad.
+    try { s.resume(); } catch(e){}
+  }, 5000);
+}
+function ttsKeepAliveOff(){
+  if(ttsKeepAlive){ clearInterval(ttsKeepAlive); ttsKeepAlive = null; }
+}
 
 function speakText(txt, onEnd){
-  if(!window.speechSynthesis){ onEnd && onEnd(); return; }
-  clearTtsTimers();
-  window.speechSynthesis.cancel();
-  const u = new SpeechSynthesisUtterance(txt);
-  u.lang  = 'es-ES';
-  u.rate  = ttsVelocidad;
-  u.onend = onEnd || null;
-  // Fix Chrome bug: keep alive
-  const _fix = setInterval(()=>{
-    if(!window.speechSynthesis.speaking){ clearInterval(_fix); return; }
-    window.speechSynthesis.pause();
-    window.speechSynthesis.resume();
-  }, 10000);
-  window.speechSynthesis.speak(u);
+  stopTts();                       // deja el motor limpio; sube el turno
+  const turno   = ttsTurno;
+  const vigente = () => turno === ttsTurno;
+
+  let cerrado = false;
+  const fin = () => {
+    if(cerrado || !vigente()) return;
+    cerrado = true;
+    ttsKeepAliveOff();
+    onEnd && onEnd();
+  };
+
+  const s = window.speechSynthesis;
+  if(!s){ fin(); return; }
+
+  const partes = trocearTts(txt);
+
+  const decir = (i) => {
+    if(!vigente()) return;
+    if(i >= partes.length){ fin(); return; }
+
+    const u = new SpeechSynthesisUtterance(partes[i]);
+    u.lang = 'es-ES';
+    u.rate = ttsVelocidad;
+
+    let pasado = false, reloj = null;
+    const siguiente = (rescatado) => {
+      if(pasado || !vigente()) return;
+      pasado = true;
+      clearTimeout(reloj);
+      if(rescatado) ttsRescates++; else ttsRescates = 0;
+      decir(i + 1);
+    };
+    u.onend   = () => siguiente(false);
+    u.onerror = () => siguiente(false);   // si esta frase falla, seguimos igual
+
+    // Red de seguridad. ~11 caracteres por segundo es una estimación holgada
+    // para el español. Si al cumplirse el plazo la voz sigue hablando de
+    // verdad se le da margen, pero solo mientras el motor sea de fiar: en
+    // cuanto ha hecho falta rescatarlo dos veces seguidas, deja de creérsele
+    // (hay móviles que se quedan diciendo que hablan sin emitir sonido) y se
+    // pasa a plazos cortos para que el repaso no se quede clavado.
+    const estimado = (partes[i].length / 11) * 1000 / Math.max(0.5, ttsVelocidad);
+    const fiable   = ttsRescates < 2;
+    let esperas    = 0;
+    const revisar = () => {
+      if(pasado || !vigente()) return;
+      if(fiable && s.speaking && esperas < 3){ esperas++; reloj = setTimeout(revisar, 1200); return; }
+      try { s.cancel(); } catch(e){}   // desatasca el motor antes de seguir
+      siguiente(true);
+    };
+    reloj = setTimeout(revisar, estimado + (fiable ? 2000 : 600));
+    ttsTimeouts.push(reloj);
+
+    try { s.speak(u); } catch(e){ siguiente(true); }
+  };
+
+  // cancel() es asíncrono: hablar en el mismo instante hace que el móvil
+  // descarte la locución y no avise nunca. Solo esperamos si había voz
+  // sonando — así el primer ▶ conserva el gesto del usuario, que algunos
+  // navegadores exigen para dejar hablar a la página.
+  ttsKeepAliveOn();
+  if(s.speaking || s.pending){
+    const t = setTimeout(()=>decir(0), 160);
+    ttsTimeouts.push(t);
+  } else {
+    decir(0);
+  }
 }
 
 function clearTtsTimers(){
@@ -682,8 +788,10 @@ function ttsAfter(ms, fn){
 }
 
 function stopTts(){
+  ttsTurno++;              // invalida la locución en curso y sus relojes
   clearTtsTimers();
-  if(window.speechSynthesis) window.speechSynthesis.cancel();
+  ttsKeepAliveOff();
+  if(window.speechSynthesis){ try{ window.speechSynthesis.cancel(); }catch(e){} }
 }
 
 // Fallos persistentes
